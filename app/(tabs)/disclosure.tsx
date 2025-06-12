@@ -8,9 +8,8 @@ import {
   StatusBar,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -206,8 +205,8 @@ const DisclosurePage: React.FC = () => {
     <>
       <StatusBar barStyle="light-content" backgroundColor="#667eea" />
       <LinearGradient
-        colors={['#667eea', '#764ba2']}
-        style={styles.headerGradient}
+        colors={['#1a1a2e', '#16213e', '#0f3460']}
+        style={{flex:1, paddingBottom:70}}
       >
         <SafeAreaView style={styles.headerSafeArea}>
           <Animated.View
@@ -229,7 +228,7 @@ const DisclosurePage: React.FC = () => {
             <View style={styles.headerContent}>
               <View style={styles.headerTop}>
                 <View>
-                  <Text style={styles.headerTitle}>Legal Disclosure</Text>
+                  <Text style={styles.headerTitle}>Pride Policy</Text>
                   <Text style={styles.headerSubtitle}>
                     SEBI Compliance & Regulatory Information
                   </Text>
@@ -241,7 +240,7 @@ const DisclosurePage: React.FC = () => {
               </View>
 
               {/* Search Bar */}
-              <View style={styles.searchContainer}>
+              {/* <View style={styles.searchContainer}>
                 <View style={styles.searchBox}>
                   <Icon name="search-outline" size={18} color="#666" />
                   <TextInput
@@ -257,20 +256,18 @@ const DisclosurePage: React.FC = () => {
                     </TouchableOpacity>
                   )}
                 </View>
-              </View>
+              </View> */}
             </View>
           </Animated.View>
         </SafeAreaView>
-      </LinearGradient>
-
-      <View style={styles.container}>
+        <View style={styles.container}>
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
           {/* Registration Info Card */}
-          <Animated.View
+          {/* <Animated.View
             style={[
               styles.registrationCard,
               {
@@ -313,7 +310,7 @@ const DisclosurePage: React.FC = () => {
                 </View>
               </View>
             </LinearGradient>
-          </Animated.View>
+          </Animated.View> */}
 
           {/* Expandable Sections */}
           {filteredSections.length > 0 ? (
@@ -388,6 +385,8 @@ const DisclosurePage: React.FC = () => {
           </View>
         </ScrollView>
       </View>
+      </LinearGradient>
+
     </>
   );
 };
@@ -467,7 +466,7 @@ const styles = StyleSheet.create({
 
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    // backgroundColor: '#f8f9fa',
   },
   scrollView: {
     flex: 1,

@@ -14,17 +14,17 @@ const CustomTabBar = ({ state, descriptors, navigation }: any) => {
       {/* Background with blur effect */}
       <View style={styles.tabBarBackground}>
         {Platform.OS === 'ios' ? (
-          <BlurView intensity={80} style={styles.blurView} />
+          <BlurView intensity={90} tint="dark" style={styles.blurView} />
         ) : (
           <LinearGradient
-            colors={['rgba(255,255,255,0.95)', 'rgba(255,255,255,0.9)']}
+            colors={['rgba(31,41,55,0.95)', 'rgba(31,41,55,0.9)']} // dark slate background
             style={styles.gradientBackground}
           />
         )}
         
         {/* Active tab indicator background */}
         <LinearGradient
-          colors={['#667eea', '#764ba2']}
+          colors={['#7C3AED', '#4F46E5']} // purple to indigo gradient
           style={[
             styles.activeIndicator,
             {
@@ -39,7 +39,11 @@ const CustomTabBar = ({ state, descriptors, navigation }: any) => {
       <View style={styles.tabButtonsContainer}>
         {state.routes.map((route: any, index: number) => {
           const { options } = descriptors[route.key];
-          const label = options.tabBarLabel !== undefined ? options.tabBarLabel : options.title !== undefined ? options.title : route.name;
+          const label = options.tabBarLabel !== undefined
+            ? options.tabBarLabel
+            : options.title !== undefined
+              ? options.title
+              : route.name;
           const isFocused = state.index === index;
 
           const onPress = () => {
@@ -61,7 +65,6 @@ const CustomTabBar = ({ state, descriptors, navigation }: any) => {
             });
           };
 
-          // Icon mapping
           const getIconName = (routeName: string, focused: boolean) => {
             const iconMap: { [key: string]: { focused: string; unfocused: string } } = {
               home: { focused: 'home', unfocused: 'home-outline' },
@@ -92,14 +95,14 @@ const CustomTabBar = ({ state, descriptors, navigation }: any) => {
                 <Icon
                   name={getIconName(route.name, isFocused)}
                   size={isFocused ? 26 : 24}
-                  color={isFocused ? '#fff' : '#666'}
+                  color={isFocused ? '#E0E7FF' : '#9CA3AF'} // light purple vs gray
                   style={styles.tabIcon}
                 />
                 <Text 
                   style={[
                     styles.tabLabel,
                     { 
-                      color: isFocused ? '#fff' : '#666',
+                      color: isFocused ? '#E0E7FF' : '#9CA3AF',
                       fontWeight: isFocused ? '700' : '500',
                       fontSize: isFocused ? 12 : 11,
                     }
@@ -107,15 +110,6 @@ const CustomTabBar = ({ state, descriptors, navigation }: any) => {
                 >
                   {label}
                 </Text>
-                
-                {/* Notification badge for some tabs */}
-                {(route.name === 'news' || route.name === 'research') && !isFocused && (
-                  <View style={styles.notificationBadge}>
-                    <Text style={styles.badgeText}>
-                      {route.name === 'news' ? '3' : '2'}
-                    </Text>
-                  </View>
-                )}
               </View>
             </TouchableOpacity>
           );
@@ -149,24 +143,10 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="research"
-        options={{
-          title: 'Research',
-          tabBarLabel: 'Research',
-        }}
-      />
-      <Tabs.Screen
         name="disclosure"
         options={{
           title: 'Disclosure',
-          tabBarLabel: 'Legal',
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'Profile',
-          tabBarLabel: 'Profile',
+          tabBarLabel: 'Policy',
         }}
       />
     </Tabs>
@@ -191,14 +171,15 @@ const styles = {
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
     overflow: 'hidden' as const,
-    shadowColor: '#000',
+    shadowColor: '#4F46E5', // subtle purple shadow
     shadowOffset: {
       width: 0,
       height: -5,
     },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.3,
     shadowRadius: 10,
-    elevation: 20,
+    elevation: 15,
+    backgroundColor: 'transparent', // handled by blur/gradient
   },
   blurView: {
     flex: 1,
@@ -211,14 +192,14 @@ const styles = {
     top: 8,
     height: 45,
     borderRadius: 22.5,
-    shadowColor: '#667eea',
+    shadowColor: '#7C3AED',
     shadowOffset: {
       width: 0,
       height: 4,
     },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
+    elevation: 12,
   },
   tabButtonsContainer: {
     flexDirection: 'row' as const,
@@ -235,7 +216,7 @@ const styles = {
     borderRadius: 22.5,
   },
   activeTabButton: {
-    // Active styles are handled by the gradient indicator
+    // active styles handled by gradient indicator
   },
   tabContent: {
     alignItems: 'center' as const,
@@ -254,17 +235,17 @@ const styles = {
     position: 'absolute' as const,
     top: -5,
     right: -8,
-    backgroundColor: '#ff6b6b',
+    backgroundColor: '#EF4444', // bright red notification badge
     borderRadius: 8,
     minWidth: 16,
     height: 16,
     justifyContent: 'center' as const,
     alignItems: 'center' as const,
     borderWidth: 2,
-    borderColor: '#fff',
+    borderColor: '#1E293B', // dark border matching background
   },
   badgeText: {
-    color: '#fff',
+    color: '#FFF',
     fontSize: 10,
     fontWeight: '700' as const,
   },

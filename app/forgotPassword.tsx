@@ -3,19 +3,19 @@ import axios from 'axios';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useRef, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Animated,
-    Dimensions,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Animated,
+  Dimensions,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
@@ -216,7 +216,7 @@ const ForgotPasswordPage: React.FC = () => {
     <>
       <StatusBar barStyle="light-content" backgroundColor="#667eea" />
       <LinearGradient
-        colors={['#667eea', '#764ba2']}
+        colors={['#1a1a2e', '#16213e', '#0f3460']}
         style={styles.container}
       >
         <KeyboardAvoidingView

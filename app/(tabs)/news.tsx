@@ -530,6 +530,7 @@ export default function NewsPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingBottom:20
   },
   safe: { 
     flex: 1,
@@ -931,7 +932,7 @@ const styles = StyleSheet.create({
   // Floating Action Button
   fab: {
     position: 'absolute',
-    bottom: 30,
+    bottom: 60,
     right: 20,
     width: 56,
     height: 56,

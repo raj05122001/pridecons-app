@@ -136,7 +136,7 @@ const LoginPage: React.FC = () => {
     <>
       <StatusBar barStyle="light-content" backgroundColor="#667eea" />
       <LinearGradient
-        colors={['#667eea', '#764ba2']}
+        colors={['#1a1a2e', '#16213e', '#0f3460']}
         style={styles.container}
       >
         <KeyboardAvoidingView
