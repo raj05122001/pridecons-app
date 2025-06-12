@@ -1,3 +1,4 @@
+import Logo from '@/components/logo/Logo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import axios from 'axios';
@@ -157,11 +158,12 @@ const LoginPage: React.FC = () => {
           >
             {/* Header */}
             <View style={styles.header}>
-              <View style={styles.logoContainer}>
-                <Icon name="lock-closed" size={40} color="#fff" />
+              <View >
+                {/* <Icon name="lock-closed" size={40} color="#fff" /> */}
+                <Logo/>
               </View>
-              <Text style={styles.title}>Welcome Back</Text>
-              <Text style={styles.subtitle}>Sign in to continue</Text>
+              {/* <Text style={styles.title}>Welcome</Text> */}
+              <Text style={styles.subtitle}>Sign in</Text>
             </View>
 
             {/* Form Container */}
@@ -286,7 +288,7 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 20,
   },
   logoContainer: {
     width: 80,
@@ -310,6 +312,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: 'rgba(255, 255, 255, 0.8)',
     textAlign: 'center',
+    marginTop:6
   },
   formContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',

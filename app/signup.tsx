@@ -1,3 +1,4 @@
+import Logo from '@/components/logo/Logo';
 import { Picker } from '@react-native-picker/picker';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import axios from 'axios';
@@ -265,8 +266,8 @@ const SignupPage: React.FC = () => {
             >
               {/* Header */}
               <View style={styles.header}>
-                <View style={styles.logoContainer}>
-                  <Icon name="person-add" size={40} color="#fff" />
+                <View >
+                  <Logo/>
                 </View>
                 <Text style={styles.title}>
                   {stage === 'register' ? 'Create Account' : 'Verify Phone'}

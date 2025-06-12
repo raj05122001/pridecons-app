@@ -1,3 +1,4 @@
+import Logo from '@/components/logo/Logo';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -242,12 +243,8 @@ const ForgotPasswordPage: React.FC = () => {
               {/* Header */}
               <View style={styles.header}>
                 
-                <View style={styles.logoContainer}>
-                  <Icon 
-                    name={stage === 'request' ? "key" : "shield-checkmark"} 
-                    size={40} 
-                    color="#fff" 
-                  />
+                <View >
+                  <Logo/>
                 </View>
                 
                 <Text style={styles.title}>

@@ -7,6 +7,7 @@ import 'react-native-reanimated';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
 import { useColorScheme } from 'react-native';
+import 'react-native-gesture-handler';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();

@@ -8,6 +8,7 @@ import {
   Animated,
   Dimensions,
   FlatList,
+  Linking,
   Modal,
   RefreshControl,
   ScrollView,
@@ -20,10 +21,20 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
 
+import DateTimePicker from '@react-native-community/datetimepicker';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 
 const { width } = Dimensions.get('window');
+
+
+interface DateFilterModalProps {
+  visible: boolean;
+  onClose: () => void;
+  onApply: (filter: string) => void;
+  currentFilter: string;
+}
+
 
 interface ResearchItem {
   id: number;
@@ -35,13 +46,12 @@ interface ResearchItem {
   tags?: string[];
 }
 
-// Date Filter Modal Component
-const DateFilterModal: React.FC<{
-  visible: boolean;
-  onClose: () => void;
-  onApply: (filter: string) => void;
-  currentFilter: string;
-}> = ({ visible, onClose, onApply, currentFilter }) => {
+const DateFilterModal: React.FC<DateFilterModalProps> = ({
+  visible,
+  onClose,
+  onApply,
+  currentFilter,
+}) => {
   const dateOptions = [
     { label: 'All Time', value: 'all' },
     { label: 'Today', value: 'today' },
@@ -49,48 +59,118 @@ const DateFilterModal: React.FC<{
     { label: 'This Month', value: 'month' },
     { label: 'Last 3 Months', value: '3months' },
     { label: 'Last 6 Months', value: '6months' },
-    { label: 'This Year', value: 'year' }
+    { label: 'This Year', value: 'year' },
+    { label: 'Custom Range', value: 'custom' },
   ];
 
+  const [showCustom, setShowCustom] = useState(false);
+  const [startDate, setStartDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(new Date());
+  const [showStartPicker, setShowStartPicker] = useState(false);
+  const [showEndPicker, setShowEndPicker] = useState(false);
+
+  const applyPreset = (value: string) => {
+    onApply(value);
+    onClose();
+  };
+
+  const applyCustom = () => {
+    const a = startDate.toISOString().split('T')[0];
+    const b = endDate.toISOString().split('T')[0];
+    onApply(`${a}_${b}`);
+    onClose();
+  };
+
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
+          {/* Header */}
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Filter by Date</Text>
             <TouchableOpacity onPress={onClose}>
               <Icon name="close" size={24} color="#667eea" />
             </TouchableOpacity>
           </View>
+
           <ScrollView style={styles.modalBody}>
-            {dateOptions.map((option) => (
+            {dateOptions.map(option => (
               <TouchableOpacity
                 key={option.value}
                 style={[
                   styles.filterOption,
-                  currentFilter === option.value && styles.activeFilterOption
+                  currentFilter === option.value && !showCustom && styles.activeFilterOption,
                 ]}
                 onPress={() => {
-                  onApply(option.value);
-                  onClose();
+                  if (option.value === 'custom') {
+                    setShowCustom(true);
+                  } else {
+                    applyPreset(option.value);
+                  }
                 }}
               >
-                <Text style={[
-                  styles.filterOptionText,
-                  currentFilter === option.value && styles.activeFilterOptionText
-                ]}>
+                <Text
+                  style={[
+                    styles.filterOptionText,
+                    currentFilter === option.value && !showCustom && styles.activeFilterOptionText,
+                  ]}
+                >
                   {option.label}
                 </Text>
-                {currentFilter === option.value && (
+                {currentFilter === option.value && !showCustom && (
                   <Icon name="checkmark" size={20} color="#667eea" />
                 )}
               </TouchableOpacity>
             ))}
+
+            {/* Custom Range Pickers */}
+            {showCustom && (
+              <View style={styles.customContainer}>
+                <TouchableOpacity
+                  style={styles.customPickerButton}
+                  onPress={() => setShowStartPicker(true)}
+                >
+                  <Text style={styles.customPickerText}>
+                    Start: {startDate.toLocaleDateString()}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.customPickerButton}
+                  onPress={() => setShowEndPicker(true)}
+                >
+                  <Text style={styles.customPickerText}>
+                    End: {endDate.toLocaleDateString()}
+                  </Text>
+                </TouchableOpacity>
+
+                {showStartPicker && (
+                  <DateTimePicker
+                    value={startDate}
+                    mode="date"
+                    display="default"
+                    onChange={(_, date) => {
+                      setShowStartPicker(false);
+                      if (date) setStartDate(date);
+                    }}
+                  />
+                )}
+                {showEndPicker && (
+                  <DateTimePicker
+                    value={endDate}
+                    mode="date"
+                    display="default"
+                    onChange={(_, date) => {
+                      setShowEndPicker(false);
+                      if (date) setEndDate(date);
+                    }}
+                  />
+                )}
+
+                <TouchableOpacity style={styles.applyCustomButton} onPress={applyCustom}>
+                  <Text style={styles.applyCustomText}>Apply Custom Range</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </ScrollView>
         </View>
       </View>
@@ -102,6 +182,8 @@ const DateFilterModal: React.FC<{
 const ResearchCard: React.FC<{ item: ResearchItem; index: number }> = ({ item, index }) => {
   const animatedValue = useRef(new Animated.Value(0)).current;
   const navigation = useNavigation<NavigationProp<any>>();
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = item.message.split(urlRegex);
 
   useEffect(() => {
     Animated.timing(animatedValue, {
@@ -155,36 +237,32 @@ const ResearchCard: React.FC<{ item: ResearchItem; index: number }> = ({ item, i
                 {item.title}
               </Text>
               <View style={styles.metaContainer}>
-                <Icon name="person-outline" size={12} color="#9ca3af" />
-                <Text style={styles.author}>Pride Research</Text>
-                <View style={styles.metaDot} />
+                <Text style={styles.timestamp}>{formatFullDate(item.timestamp)}</Text>
               </View>
             </View>
           </View>
-          
+
           <Text style={styles.message} numberOfLines={4}>
-            {item.message}
+            {parts.map((part, i) => {
+              if (urlRegex.test(part)) {
+                return (
+                  <Text
+                    key={i}
+                    style={styles.url}
+                    onPress={() =>
+                      Linking.openURL(part).catch((err: any) =>
+                        console.error('Failed to open URL:', err)
+                      )
+                    }
+                  >
+                    {part}
+                  </Text>
+                );
+              } else {
+                return <Text key={i}>{part}</Text>;
+              }
+            })}
           </Text>
-          
-          <View style={styles.cardFooter}>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('disclosure')}
-              style={styles.disclosureButton}
-            >
-              <LinearGradient
-                colors={['#667eea', '#764ba2']}
-                style={styles.tagGradient}
-              >
-                <Icon name="document-text-outline" size={14} color="#fff" />
-                <Text style={styles.tagText}>Disclosure</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-            
-            <View style={styles.metaContainer}>
-                <Icon name="time-outline" size={12} color="#9ca3af" />
-                <Text style={styles.timestamp}>{formatFullDate(item.timestamp)}</Text>
-            </View>
-          </View>
         </LinearGradient>
       </TouchableOpacity>
     </Animated.View>
@@ -204,40 +282,40 @@ const ResearchReportCard: React.FC<{ report: any; index: number }> = ({ report, 
     }).start();
   }, []);
 
-const downloadPdf = async (fileKey: string) => {
-  const url = `https://d12p872xp7spmg.cloudfront.net/${fileKey}`;
-  // 1. sanitize fileKey into a safe filename
-  const safeName = fileKey.replace(/[/\\?%*:|"<>]/g, '-');
-  const dir = FileSystem.documentDirectory! + 'researchReport/';
+  const downloadPdf = async (fileKey: string) => {
+    const url = `https://d12p872xp7spmg.cloudfront.net/${fileKey}`;
+    // 1. sanitize fileKey into a safe filename
+    const safeName = fileKey.replace(/[/\\?%*:|"<>]/g, '-');
+    const dir = FileSystem.documentDirectory! + 'researchReport/';
 
-  try {
-    // 2. ensure your local folder exists
-    const info = await FileSystem.getInfoAsync(dir);
-    if (!info.exists) {
-      await FileSystem.makeDirectoryAsync(dir, { intermediates: true });
+    try {
+      // 2. ensure your local folder exists
+      const info = await FileSystem.getInfoAsync(dir);
+      if (!info.exists) {
+        await FileSystem.makeDirectoryAsync(dir, { intermediates: true });
+      }
+
+      // 3. build a local file:// URI
+      const localUri = dir + safeName;
+
+      // 4. download into that path (this yields a valid PDF)
+      const { uri } = await FileSystem.downloadAsync(url, localUri);
+      console.log('Downloaded to:', uri);
+
+      // 5. now let the user open/share it
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri, {
+          mimeType: 'application/pdf',
+        });
+      } else {
+        // fallback: on Android, you could launch an intent instead
+        Alert.alert('Downloaded', `Saved to:\n${uri}`);
+      }
+    } catch (err: any) {
+      console.error('Download failed:', err);
+      Alert.alert('Error', 'Unable to download PDF. Please try again.');
     }
-
-    // 3. build a local file:// URI
-    const localUri = dir + safeName;
-
-    // 4. download into that path (this yields a valid PDF)
-    const { uri } = await FileSystem.downloadAsync(url, localUri);
-    console.log('Downloaded to:', uri);
-
-    // 5. now let the user open/share it
-    if (await Sharing.isAvailableAsync()) {
-      await Sharing.shareAsync(uri, {
-        mimeType: 'application/pdf',
-      });
-    } else {
-      // fallback: on Android, you could launch an intent instead
-      Alert.alert('Downloaded', `Saved to:\n${uri}`);
-    }
-  } catch (err: any) {
-    console.error('Download failed:', err);
-    Alert.alert('Error', 'Unable to download PDF. Please try again.');
-  }
-};
+  };
 
   return (
     <Animated.View
@@ -281,7 +359,7 @@ const downloadPdf = async (fileKey: string) => {
                 <Text style={styles.reportAuthor}>{report.author}</Text>
               </View>
             </View>
-            <TouchableOpacity style={styles.downloadButton} onPress={()=>downloadPdf(report?.fileKey)}>
+            <TouchableOpacity style={styles.downloadButton} onPress={() => downloadPdf(report?.fileKey)}>
               <Icon name="download-outline" size={20} color="#667eea" />
             </TouchableOpacity>
           </View>
@@ -378,13 +456,13 @@ const HomePage: React.FC = () => {
 
   const filterByDate = (items: ResearchItem[], dateFilter: string) => {
     if (dateFilter === 'all') return items;
-    
+
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    
+
     return items.filter(item => {
       const itemDate = new Date(item.timestamp);
-      
+
       switch (dateFilter) {
         case 'today':
           return itemDate >= today;
@@ -409,34 +487,34 @@ const HomePage: React.FC = () => {
     });
   };
 
-const fetchResearchData = async () => {
-  try {
-    setError('');
-    const res = await axios.get<ResearchItem[]>(
-      'http://192.168.30.216:8000/researcher/?skip=0&limit=100'
-    );
-    const dataArray = res.data ?? [];
+  const fetchResearchData = async () => {
+    try {
+      setError('');
+      const res = await axios.get<ResearchItem[]>(
+        'http://192.168.30.216:8000/researcher/?skip=0&limit=100'
+      );
+      const dataArray = res.data ?? [];
 
-    // Sort descending by timestamp (newest first)
-    const sortedData = [...dataArray].sort((a, b) => {
-      const tA = new Date(a.timestamp).getTime();
-      const tB = new Date(b.timestamp).getTime();
-      return tB - tA;
-    });
+      // Sort descending by timestamp (newest first)
+      const sortedData = [...dataArray].sort((a, b) => {
+        const tA = new Date(a.timestamp).getTime();
+        const tB = new Date(b.timestamp).getTime();
+        return tB - tA;
+      });
 
-    setData(sortedData);
-  } catch (e: any) {
-    console.error(e);
-    setError('Failed to load research data');
-    Alert.alert(
-      'Error',
-      'Unable to load research. Please check your connection and try again.'
-    );
-  } finally {
-    setLoading(false);
-    setRefreshing(false);
-  }
-};
+      setData(sortedData);
+    } catch (e: any) {
+      console.error(e);
+      setError('Failed to load research data');
+      Alert.alert(
+        'Error',
+        'Unable to load research. Please check your connection and try again.'
+      );
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
 
   const fetchResearchReport = async () => {
@@ -458,7 +536,7 @@ const fetchResearchData = async () => {
 
   const onRefresh = () => {
     setRefreshing(true);
-    if(activeTab === 'research') fetchResearchData();
+    if (activeTab === 'research') fetchResearchData();
     else fetchResearchReport();
   };
 
@@ -475,7 +553,7 @@ const fetchResearchData = async () => {
   };
 
   const getDateFilterLabel = (filter: string) => {
-    const options:any = {
+    const options: any = {
       'all': 'All Time',
       'today': 'Today',
       'week': 'This Week',
@@ -494,21 +572,13 @@ const fetchResearchData = async () => {
           <View>
             <Text style={styles.headerTitle}>Research Hub</Text>
             <Text style={styles.headerSubtitle}>
-              {activeTab === 'research' ? filteredData.length : filteredReports.length} {activeTab === 'research' ? (filteredData.length === 1 ? 'article' : 'articles') : (filteredReports.length === 1 ? 'report' : 'reports')} available
+              {activeTab === 'research' ? filteredData.length : filteredReports.length} {activeTab === 'research' ? (filteredData.length === 1 ? 'article' : 'Research') : (filteredReports.length === 1 ? 'report' : 'Reports')} Available
             </Text>
           </View>
-          <TouchableOpacity style={styles.profileButton}>
-            <LinearGradient
-              colors={['rgba(255,255,255,0.2)', 'rgba(255,255,255,0.1)']}
-              style={styles.profileGradient}
-            >
-              <Icon name="person-circle-outline" size={32} color="#fff" />
-            </LinearGradient>
-          </TouchableOpacity>
         </View>
 
         {/* Date Filter */}
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.dateFilterButton}
           onPress={() => setShowDateFilter(true)}
         >
@@ -528,10 +598,10 @@ const fetchResearchData = async () => {
               activeTab === 'research' && styles.activeTopTab,
             ]}
           >
-            <Icon 
-              name="document-text-outline" 
-              size={18} 
-              color={activeTab === 'research' ? '#fff' : '#ccc'} 
+            <Icon
+              name="document-text-outline"
+              size={18}
+              color={activeTab === 'research' ? '#fff' : '#ccc'}
             />
             <Text style={[
               styles.topTabText,
@@ -545,10 +615,10 @@ const fetchResearchData = async () => {
               activeTab === 'reports' && styles.activeTopTab,
             ]}
           >
-            <Icon 
-              name="bar-chart-outline" 
-              size={18} 
-              color={activeTab === 'reports' ? '#fff' : '#ccc'} 
+            <Icon
+              name="bar-chart-outline"
+              size={18}
+              color={activeTab === 'reports' ? '#fff' : '#ccc'}
             />
             <Text style={[
               styles.topTabText,
@@ -591,7 +661,7 @@ const fetchResearchData = async () => {
   }
 
   return (
-    <LinearGradient colors={['#1a1a2e', '#16213e', '#0f3460']} style={{ flex: 1,paddingBottom:20 }}>
+    <LinearGradient colors={['#1a1a2e', '#16213e', '#0f3460']} style={{ flex: 1, paddingBottom: 40 }}>
       <SafeAreaView style={styles.safeArea}>
         <StatusBar barStyle="light-content" backgroundColor="#1a1a2e" />
         {renderHeader()}
@@ -690,20 +760,20 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1 },
   safeAreaHeader: { backgroundColor: 'transparent' },
   headerContent: { paddingHorizontal: 20 },
-  headerTop: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    marginBottom: 20 
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20
   },
-  headerTitle: { 
-    fontSize: 32, 
-    fontWeight: '800', 
+  headerTitle: {
+    fontSize: 32,
+    fontWeight: '800',
     color: '#fff',
     letterSpacing: -0.5
   },
-  headerSubtitle: { 
-    fontSize: 15, 
+  headerSubtitle: {
+    fontSize: 15,
     color: 'rgba(255,255,255,0.7)',
     marginTop: 4
   },
@@ -728,9 +798,9 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   searchIcon: { marginRight: 12 },
-  searchInput: { 
-    flex: 1, 
-    fontSize: 16, 
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
     color: '#fff',
     fontWeight: '500'
   },
@@ -755,7 +825,6 @@ const styles = StyleSheet.create({
   },
   topTabsContainer: {
     flexDirection: 'row',
-    marginBottom: 20,
     backgroundColor: 'rgba(255,255,255,0.08)',
     borderRadius: 16,
     padding: 4,
@@ -785,7 +854,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '700',
   },
-  list: { padding: 20 },
+  list: { padding: 10 },
   cardContainer: { marginBottom: 20 },
   card: {
     borderRadius: 20,
@@ -796,81 +865,79 @@ const styles = StyleSheet.create({
     shadowRadius: 16
   },
   cardGradient: {
-    padding: 20,
+    padding: 14,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
     borderRadius: 20,
   },
-  cardHeader: { 
-    flexDirection: 'row', 
-    alignItems: 'flex-start', 
-    marginBottom: 16 
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 4
   },
-  avatarContainer: { 
-    width: 48, 
-    height: 48, 
-    borderRadius: 24, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
+  avatarContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: 12,
     shadowColor: '#667eea',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
   },
-  avatarText: { 
-    color: '#fff', 
-    fontSize: 16, 
+  avatarText: {
+    color: '#fff',
+    fontSize: 16,
     fontWeight: '800'
   },
   headerInfo: { flex: 1 },
-  title: { 
-    fontSize: 19, 
-    fontWeight: '700', 
-    color: '#fff', 
-    marginBottom: 8, 
+  title: {
+    fontSize: 19,
+    fontWeight: '700',
+    color: '#fff',
+    marginBottom: 2,
     lineHeight: 26,
     letterSpacing: -0.3
   },
-  metaContainer: { 
-    flexDirection: 'row', 
+  metaContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'wrap'
   },
-  author: { 
-    fontSize: 14, 
-    color: '#9ca3af', 
+  author: {
+    fontSize: 14,
+    color: '#9ca3af',
     fontWeight: '600',
     marginLeft: 4
   },
-  metaDot: { 
-    width: 3, 
-    height: 3, 
-    borderRadius: 1.5, 
-    backgroundColor: '#6b7280', 
-    marginHorizontal: 8 
+  metaDot: {
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
+    backgroundColor: '#6b7280',
+    marginHorizontal: 8
   },
-  timestamp: { 
-    fontSize: 13, 
+  timestamp: {
+    fontSize: 13,
     color: '#9ca3af',
-    marginLeft: 4
   },
-  bookmarkButton: { 
+  bookmarkButton: {
     padding: 8,
     borderRadius: 12,
     backgroundColor: 'rgba(255,255,255,0.08)'
   },
-  message: { 
-    fontSize: 15, 
-    color: '#e5e7eb', 
-    lineHeight: 24, 
-    marginBottom: 20,
+  message: {
+    fontSize: 15,
+    color: '#e5e7eb',
+    lineHeight: 24,
     fontWeight: '400'
   },
-  cardFooter: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center' 
+  cardFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center'
   },
   disclosureButton: {
     flex: 1,
@@ -883,9 +950,9 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 12,
   },
-  tagText: { 
-    fontSize: 13, 
-    color: '#fff', 
+  tagText: {
+    fontSize: 13,
+    color: '#fff',
     fontWeight: '600',
     marginLeft: 6
   },
@@ -898,7 +965,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: 'rgba(255,255,255,0.08)',
   },
-  
+
   // Report Card Styles
   reportCard: {
     borderRadius: 20,
@@ -1049,7 +1116,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 8,
   },
-  
+
   // Modal Styles
   modalOverlay: {
     flex: 1,
@@ -1099,25 +1166,25 @@ const styles = StyleSheet.create({
     color: '#667eea',
     fontWeight: '600',
   },
-  
+
   // Loading and Empty States
-  emptyContainer: { 
-    flex: 1, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    paddingHorizontal: 40 
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40
   },
-  emptyTitle: { 
-    fontSize: 24, 
-    fontWeight: '700', 
-    color: '#e5e7eb', 
-    marginVertical: 16, 
-    textAlign: 'center' 
+  emptyTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#e5e7eb',
+    marginVertical: 16,
+    textAlign: 'center'
   },
-  emptySubtitle: { 
-    fontSize: 16, 
-    color: '#9ca3af', 
-    textAlign: 'center', 
+  emptySubtitle: {
+    fontSize: 16,
+    color: '#9ca3af',
+    textAlign: 'center',
     marginBottom: 20,
     lineHeight: 22
   },
@@ -1129,14 +1196,14 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 12,
   },
-  retryText: { 
-    color: '#fff', 
+  retryText: {
+    color: '#fff',
     fontWeight: '600',
     fontSize: 16
   },
-  skeletonCard: { 
-    height: 180, 
-    borderRadius: 20, 
+  skeletonCard: {
+    height: 180,
+    borderRadius: 20,
     marginBottom: 20,
     overflow: 'hidden'
   },
@@ -1165,11 +1232,11 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     width: '100%',
   },
-  
+
   // FAB
   fab: {
     position: 'absolute',
-    bottom: 60,
+    bottom: 40,
     right: 20,
     width: 56,
     height: 56,
@@ -1186,5 +1253,34 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  url: {
+    color: '#3498db',
+    textDecorationLine: 'underline',
+  },
+  customContainer: {
+    marginTop: 16,
+    borderTopColor: '#ddd',
+    borderTopWidth: 1,
+    paddingTop: 16,
+  },
+  customPickerButton: {
+    paddingVertical: 12,
+  },
+  customPickerText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  applyCustomButton: {
+    marginTop: 20,
+    backgroundColor: '#667eea',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  applyCustomText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

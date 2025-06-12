@@ -1,3 +1,4 @@
+import { formatFullDate, getTimeAgo } from '@/helper/helper';
 import axios from 'axios';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef, useState } from 'react';
@@ -62,20 +63,6 @@ const NewsCard: React.FC<{ item: NewsItem; index: number; onPress: () => void }>
     }).start();
   };
 
-  const formatTimeAgo = (dateTime: string) => {
-    const date = new Date(dateTime);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffMinutes = Math.floor(diffTime / (1000 * 60));
-    const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffMinutes < 60) return `${diffMinutes}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
-    return date.toLocaleDateString();
-  };
-
   return (
     <Animated.View
       style={[
@@ -136,19 +123,15 @@ const NewsCard: React.FC<{ item: NewsItem; index: number; onPress: () => void }>
             <View style={styles.metaRow}>
               <Icon name="time-outline" size={14} color="#888" />
               <Text style={styles.metaText}>
-                {formatTimeAgo(item.dateTime)}
+                {getTimeAgo(item.dateTime)}
               </Text>
               <View style={styles.metaDivider} />
               <Icon name="eye-outline" size={14} color="#888" />
               <Text style={styles.metaText}>
-                {Math.floor(Math.random() * 1000 + 100)}
+                {Math.floor(Math.random() * 1000 + 10000)}
               </Text>
             </View>
           </View>
-          
-          <TouchableOpacity style={styles.bookmarkButton}>
-            <Icon name="bookmark-outline" size={20} color="#667eea" />
-          </TouchableOpacity>
         </View>
       </TouchableOpacity>
     </Animated.View>
@@ -223,6 +206,7 @@ export default function NewsPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selected, setSelected] = useState<NewsItem | null>(null);
+  const [isOpenModel, setIsOpenModel]=useState<boolean>(false)
   const [error, setError] = useState<string>('');
 
   // Animation values
@@ -341,17 +325,22 @@ export default function NewsPage() {
     <NewsCard 
       item={item} 
       index={index} 
-      onPress={() => setSelected(item)} 
+      onPress={() =>{ 
+        setSelected(item)
+        setIsOpenModel(true)
+      }} 
     />
   );
 
   return (
     <>
       <StatusBar barStyle="light-content" backgroundColor="#1a1a2e" />
+      
       <LinearGradient
         colors={['#1a1a2e', '#16213e', '#0f3460']}
         style={styles.container}
       >
+        
         <SafeAreaView style={styles.safe}>
           {/* HEADER */}
           <Animated.View
@@ -369,10 +358,6 @@ export default function NewsPage() {
                 <Text style={styles.headerSubtitle}>
                   Stay updated with latest market news
                 </Text>
-              </View>
-              <View style={styles.coinBox}>
-                <Icon name="diamond" size={18} color="#F5A623" />
-                <Text style={styles.coinText}>200</Text>
               </View>
             </View>
 
@@ -399,9 +384,6 @@ export default function NewsPage() {
               <Text style={styles.sectionTitle}>
                 {searchQuery ? `Results for "${searchQuery}"` : 'Breaking News'}
               </Text>
-              <TouchableOpacity onPress={() => {}}>
-                <Text style={styles.seeAll}>See all ›</Text>
-              </TouchableOpacity>
             </View>
           </Animated.View>
 
@@ -433,18 +415,39 @@ export default function NewsPage() {
             />
           )}
 
-          {/* ENHANCED MODAL */}
+          {/* Floating refresh button */}
+          <TouchableOpacity
+            style={styles.fab}
+            onPress={onRefresh}
+          >
+            <LinearGradient
+              colors={['#667eea', '#764ba2']}
+              style={styles.fabGradient}
+            >
+              <Icon name="refresh" size={24} color="#fff" />
+            </LinearGradient>
+          </TouchableOpacity>
+        </SafeAreaView>
+      </LinearGradient>
+
+                {/* ENHANCED MODAL */}
           <Modal
-            visible={!!selected}
-            transparent
+            visible={isOpenModel}
+            transparent={true}
             animationType="slide"
-            onRequestClose={() => setSelected(null)}
+            onRequestClose={() => {
+              setSelected(null)
+              setIsOpenModel(false)
+            }}
           >
             <View style={styles.modalOverlay}>
               <View style={styles.modalContainer}>
                 <TouchableOpacity 
                   style={styles.modalClose} 
-                  onPress={() => setSelected(null)}
+                  onPress={() =>{
+                     setSelected(null)
+                    setIsOpenModel(false)
+                    }}
                 >
                   <LinearGradient
                     colors={['rgba(255,255,255,0.9)', 'rgba(255,255,255,0.8)']}
@@ -480,7 +483,7 @@ export default function NewsPage() {
                           {selected?.source?.title || 'Unknown Source'}
                         </Text>
                       </View>
-                      <Text style={styles.modalDate}>{selected?.dateTime}</Text>
+                      <Text style={styles.modalDate}>{formatFullDate(selected?.dateTime)}</Text>
                     </View>
 
                     <Text style={styles.modalTitle}>{selected?.title}</Text>
@@ -508,21 +511,6 @@ export default function NewsPage() {
               </View>
             </View>
           </Modal>
-
-          {/* Floating refresh button */}
-          <TouchableOpacity
-            style={styles.fab}
-            onPress={onRefresh}
-          >
-            <LinearGradient
-              colors={['#667eea', '#764ba2']}
-              style={styles.fabGradient}
-            >
-              <Icon name="refresh" size={24} color="#fff" />
-            </LinearGradient>
-          </TouchableOpacity>
-        </SafeAreaView>
-      </LinearGradient>
     </>
   );
 }
@@ -829,10 +817,12 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     backgroundColor: '#fff',
+    width: '100%',                 // full width
+    height: height * 0.9,          // 90% of screen height
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    maxHeight: height * 0.9,
     overflow: 'hidden',
+
   },
   modalClose: {
     position: 'absolute',
