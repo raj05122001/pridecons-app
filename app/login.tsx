@@ -106,7 +106,7 @@ const LoginPage: React.FC = () => {
       form.append('client_secret', '');
 
       const response = await axios.post(
-        'http://192.168.1.91:8000/auth/login',
+        'https://api.pridecons.sbs/auth/login',
         form.toString(),
         {
           headers: {

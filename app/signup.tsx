@@ -188,7 +188,7 @@ const SignupPage: React.FC = () => {
     setLoading(true);
     try {
       await axios.post(
-        'http://192.168.1.91:8000/auth/register',
+        'https://api.pridecons.sbs/auth/register',
         { name, service, country_code: '+91', phone_number: phone, email, password },
         { headers: { Accept: 'application/json', 'Content-Type': 'application/json' } }
       );
@@ -210,7 +210,7 @@ const SignupPage: React.FC = () => {
     setLoading(true);
     try {
       await axios.post(
-        'http://192.168.1.91:8000/auth/verify-otp',
+        'https://api.pridecons.sbs/auth/verify-otp',
         { phone_number: phone, otp },
         { headers: { Accept: 'application/json', 'Content-Type': 'application/json' } }
       );
@@ -228,7 +228,7 @@ const SignupPage: React.FC = () => {
     setLoading(true);
     try {
       await axios.post(
-        'http://192.168.1.91:8000/auth/resend-otp',
+        'https://api.pridecons.sbs/auth/resend-otp',
         { phone_number: phone },
         { headers: { Accept: 'application/json', 'Content-Type': 'application/json' } }
       );

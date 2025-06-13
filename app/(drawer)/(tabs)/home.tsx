@@ -492,7 +492,7 @@ const HomePage: React.FC = () => {
     try {
       setError('');
       const res = await axios.get<ResearchItem[]>(
-        'http://192.168.1.91:8000/researcher/?skip=0&limit=100'
+        'https://api.pridecons.sbs/researcher/?skip=0&limit=100'
       );
       const dataArray = res.data ?? [];
 

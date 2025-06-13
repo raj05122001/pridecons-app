@@ -37,12 +37,12 @@ const { width } = Dimensions.get('window');
 // Custom Drawer Content Component
 function CustomDrawerContent(props: DrawerContentComponentProps) {
   const { logout } = useAuth();
-  const [userDetails, setUserDetails]=useState<DecodedAuthToken | null>()
+  const [userDetails, setUserDetails] = useState<DecodedAuthToken | null>()
 
-  useEffect(()=>{
+  useEffect(() => {
     fun()
-  },[])
-  const fun = async()=>{
+  }, [])
+  const fun = async () => {
     const res = await decodeAuthToken()
     setUserDetails(res)
   }
@@ -290,7 +290,6 @@ export default function DrawerLayout() {
             ),
           }}
         />
-
       </Drawer>
     </GestureHandlerRootView>
   );
