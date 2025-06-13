@@ -1,14 +1,14 @@
 // app/_layout.tsx
+import { registerForPushNotificationsAsync, setupNotificationListeners } from '@/components/notificationService';
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ActivityIndicator, useColorScheme, View } from 'react-native';
 import 'react-native-gesture-handler';
 import 'react-native-reanimated';
-
-import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
@@ -16,6 +16,31 @@ function RootLayoutNav() {
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
+
+// Notification setup useEffect
+  useEffect(() => {
+    const initializeNotifications = async () => {
+      try {
+        console.log('🚀 Initializing notifications...');
+        
+        // Register for notifications
+        const notificationToken = await registerForPushNotificationsAsync();
+        
+        if (notificationToken) {
+          console.log('✅ Notification setup complete!');
+        }
+        
+        // Setup listeners
+        const cleanup = setupNotificationListeners();
+        
+        return cleanup;
+      } catch (error) {
+        console.error('❌ Notification setup error:', error);
+      }
+    };
+
+    initializeNotifications();
+  }, []);
 
   if (!loaded || isLoading) {
     return (

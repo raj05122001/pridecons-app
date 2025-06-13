@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "273550335578",
+    "project_id": "pridetrading-6a03b",
+    "storage_bucket": "pridetrading-6a03b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:273550335578:android:a26ea5c56f4fe9bf098263",
+        "android_client_info": {
+          "package_name": "com.pridetradingconsultancy.pridecons"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBAPC8jGVKi8Fh5s3rDfwqxF0YxL5NGAls"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
