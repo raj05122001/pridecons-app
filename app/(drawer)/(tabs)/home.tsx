@@ -21,6 +21,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
 
+import DrawerButton from "@/components/DrawerButton";
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
@@ -491,7 +492,7 @@ const HomePage: React.FC = () => {
     try {
       setError('');
       const res = await axios.get<ResearchItem[]>(
-        'http://192.168.30.216:8000/researcher/?skip=0&limit=100'
+        'http://192.168.1.91:8000/researcher/?skip=0&limit=100'
       );
       const dataArray = res.data ?? [];
 
@@ -569,6 +570,9 @@ const HomePage: React.FC = () => {
     <SafeAreaView style={styles.safeAreaHeader}>
       <View style={styles.headerContent}>
         <View style={styles.headerTop}>
+          <View>
+            <DrawerButton/>
+          </View>
           <View>
             <Text style={styles.headerTitle}>Research Hub</Text>
             <Text style={styles.headerSubtitle}>
@@ -762,9 +766,9 @@ const styles = StyleSheet.create({
   headerContent: { paddingHorizontal: 20 },
   headerTop: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20
+    marginBottom: 20,
+    gap:20
   },
   headerTitle: {
     fontSize: 32,

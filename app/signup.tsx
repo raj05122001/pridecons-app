@@ -188,7 +188,7 @@ const SignupPage: React.FC = () => {
     setLoading(true);
     try {
       await axios.post(
-        'http://192.168.30.216:8000/auth/register',
+        'http://192.168.1.91:8000/auth/register',
         { name, service, country_code: '+91', phone_number: phone, email, password },
         { headers: { Accept: 'application/json', 'Content-Type': 'application/json' } }
       );
@@ -210,7 +210,7 @@ const SignupPage: React.FC = () => {
     setLoading(true);
     try {
       await axios.post(
-        'http://192.168.30.216:8000/auth/verify-otp',
+        'http://192.168.1.91:8000/auth/verify-otp',
         { phone_number: phone, otp },
         { headers: { Accept: 'application/json', 'Content-Type': 'application/json' } }
       );
@@ -228,7 +228,7 @@ const SignupPage: React.FC = () => {
     setLoading(true);
     try {
       await axios.post(
-        'http://192.168.30.216:8000/auth/resend-otp',
+        'http://192.168.1.91:8000/auth/resend-otp',
         { phone_number: phone },
         { headers: { Accept: 'application/json', 'Content-Type': 'application/json' } }
       );

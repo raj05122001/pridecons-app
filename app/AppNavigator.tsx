@@ -9,9 +9,9 @@ import { NavigationContainer } from '@react-navigation/native';
 import React from 'react';
 
 // import your screens
-import Disclosure from '@/app/(tabs)/disclosure';
-import Home from "@/app/(tabs)/home";
-import News from '@/app/(tabs)/news';
+import Disclosure from '@/app/(drawer)/(tabs)/disclosure';
+import Home from "@/app/(drawer)/(tabs)/home";
+import News from '@/app/(drawer)/(tabs)/news';
 
 const Drawer = createDrawerNavigator();
 

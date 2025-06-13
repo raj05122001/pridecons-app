@@ -154,7 +154,7 @@ const ForgotPasswordPage: React.FC = () => {
     setLoading(true);
     try {
       await axios.post(
-        'http://192.168.30.216:8000/auth/forgot-password',
+        'http://192.168.1.91:8000/auth/forgot-password',
         { phone_number: phone },
         { headers: { Accept: 'application/json', 'Content-Type': 'application/json' } }
       );
@@ -182,7 +182,7 @@ const ForgotPasswordPage: React.FC = () => {
     setLoading(true);
     try {
       await axios.post(
-        'http://192.168.30.216:8000/auth/reset-password',
+        'http://192.168.1.91:8000/auth/reset-password',
         { phone_number: phone, otp, new_password: newPassword },
         { headers: { Accept: 'application/json', 'Content-Type': 'application/json' } }
       );
@@ -201,7 +201,7 @@ const ForgotPasswordPage: React.FC = () => {
     setLoading(true);
     try {
       await axios.post(
-        'http://192.168.30.216:8000/auth/forgot-password',
+        'http://192.168.1.91:8000/auth/forgot-password',
         { phone_number: phone },
         { headers: { Accept: 'application/json', 'Content-Type': 'application/json' } }
       );

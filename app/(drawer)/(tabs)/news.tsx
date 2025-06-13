@@ -1,3 +1,4 @@
+import DrawerButton from '@/components/DrawerButton';
 import { formatFullDate, getTimeAgo } from '@/helper/helper';
 import axios from 'axios';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -32,10 +33,10 @@ interface NewsItem {
 }
 
 // Separate component for news card with animations
-const NewsCard: React.FC<{ item: NewsItem; index: number; onPress: () => void }> = ({ 
-  item, 
-  index, 
-  onPress 
+const NewsCard: React.FC<{ item: NewsItem; index: number; onPress: () => void }> = ({
+  item,
+  index,
+  onPress
 }) => {
   const animatedValue = useRef(new Animated.Value(0)).current;
   const scaleValue = useRef(new Animated.Value(1)).current;
@@ -102,7 +103,7 @@ const NewsCard: React.FC<{ item: NewsItem; index: number; onPress: () => void }>
               <Icon name="newspaper-outline" size={24} color="#666" />
             </View>
           )}
-          
+
           <View style={styles.cardText}>
             <View style={styles.sourceContainer}>
               <View style={styles.sourceBadge}>
@@ -115,11 +116,11 @@ const NewsCard: React.FC<{ item: NewsItem; index: number; onPress: () => void }>
                 <Text style={styles.liveText}>LIVE</Text>
               </View>
             </View>
-            
+
             <Text style={styles.title} numberOfLines={3}>
               {item.title}
             </Text>
-            
+
             <View style={styles.metaRow}>
               <Icon name="time-outline" size={14} color="#888" />
               <Text style={styles.metaText}>
@@ -206,7 +207,7 @@ export default function NewsPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selected, setSelected] = useState<NewsItem | null>(null);
-  const [isOpenModel, setIsOpenModel]=useState<boolean>(false)
+  const [isOpenModel, setIsOpenModel] = useState<boolean>(false)
   const [error, setError] = useState<string>('');
 
   // Animation values
@@ -253,7 +254,7 @@ export default function NewsPage() {
   const filtered = data.filter(item => {
     const q = searchQuery.toLowerCase().trim();
     if (!q) return true;
-    
+
     return (
       item.title.toLowerCase().includes(q) ||
       (item.source?.title.toLowerCase().includes(q)) ||
@@ -273,17 +274,17 @@ export default function NewsPage() {
 
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
-      <Icon 
-        name={searchQuery ? "search-outline" : "newspaper-outline"} 
-        size={80} 
-        color="#444" 
+      <Icon
+        name={searchQuery ? "search-outline" : "newspaper-outline"}
+        size={80}
+        color="#444"
       />
       <Text style={styles.emptyTitle}>
         {searchQuery ? 'No results found' : 'No news available'}
       </Text>
       <Text style={styles.emptySubtitle}>
-        {searchQuery 
-          ? 'Try adjusting your search terms' 
+        {searchQuery
+          ? 'Try adjusting your search terms'
           : 'Check back later for the latest updates'
         }
       </Text>
@@ -322,25 +323,25 @@ export default function NewsPage() {
   );
 
   const renderItem = ({ item, index }: { item: NewsItem; index: number }) => (
-    <NewsCard 
-      item={item} 
-      index={index} 
-      onPress={() =>{ 
+    <NewsCard
+      item={item}
+      index={index}
+      onPress={() => {
         setSelected(item)
         setIsOpenModel(true)
-      }} 
+      }}
     />
   );
 
   return (
     <>
       <StatusBar barStyle="light-content" backgroundColor="#1a1a2e" />
-      
+
       <LinearGradient
         colors={['#1a1a2e', '#16213e', '#0f3460']}
         style={styles.container}
       >
-        
+
         <SafeAreaView style={styles.safe}>
           {/* HEADER */}
           <Animated.View
@@ -353,6 +354,9 @@ export default function NewsPage() {
             ]}
           >
             <View style={styles.headerTop}>
+                            <View>
+                <DrawerButton />
+              </View>
               <View>
                 <Text style={styles.headerTitle}>News Hub</Text>
                 <Text style={styles.headerSubtitle}>
@@ -430,87 +434,87 @@ export default function NewsPage() {
         </SafeAreaView>
       </LinearGradient>
 
-                {/* ENHANCED MODAL */}
-          <Modal
-            visible={isOpenModel}
-            transparent={true}
-            animationType="slide"
-            onRequestClose={() => {
-              setSelected(null)
-              setIsOpenModel(false)
-            }}
-          >
-            <View style={styles.modalOverlay}>
-              <View style={styles.modalContainer}>
-                <TouchableOpacity 
-                  style={styles.modalClose} 
-                  onPress={() =>{
-                     setSelected(null)
-                    setIsOpenModel(false)
-                    }}
-                >
+      {/* ENHANCED MODAL */}
+      <Modal
+        visible={isOpenModel}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => {
+          setSelected(null)
+          setIsOpenModel(false)
+        }}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <TouchableOpacity
+              style={styles.modalClose}
+              onPress={() => {
+                setSelected(null)
+                setIsOpenModel(false)
+              }}
+            >
+              <LinearGradient
+                colors={['rgba(255,255,255,0.9)', 'rgba(255,255,255,0.8)']}
+                style={styles.modalCloseGradient}
+              >
+                <Icon name="close" size={24} color="#333" />
+              </LinearGradient>
+            </TouchableOpacity>
+
+            <ScrollView
+              style={styles.modalContent}
+              showsVerticalScrollIndicator={false}
+              bounces={false}
+            >
+              {selected?.image && (
+                <View style={styles.modalImageContainer}>
+                  <Image
+                    source={{ uri: selected.image }}
+                    style={styles.modalImage}
+                    resizeMode="cover"
+                  />
                   <LinearGradient
-                    colors={['rgba(255,255,255,0.9)', 'rgba(255,255,255,0.8)']}
-                    style={styles.modalCloseGradient}
-                  >
-                    <Icon name="close" size={24} color="#333" />
-                  </LinearGradient>
-                </TouchableOpacity>
+                    colors={['transparent', 'rgba(0,0,0,0.3)']}
+                    style={styles.modalImageOverlay}
+                  />
+                </View>
+              )}
 
-                <ScrollView 
-                  style={styles.modalContent}
-                  showsVerticalScrollIndicator={false}
-                  bounces={false}
-                >
-                  {selected?.image && (
-                    <View style={styles.modalImageContainer}>
-                      <Image 
-                        source={{ uri: selected.image }} 
-                        style={styles.modalImage}
-                        resizeMode="cover"
-                      />
-                      <LinearGradient
-                        colors={['transparent', 'rgba(0,0,0,0.3)']}
-                        style={styles.modalImageOverlay}
-                      />
-                    </View>
-                  )}
-
-                  <View style={styles.modalTextContent}>
-                    <View style={styles.modalHeader}>
-                      <View style={styles.modalSourceBadge}>
-                        <Text style={styles.modalSourceText}>
-                          {selected?.source?.title || 'Unknown Source'}
-                        </Text>
-                      </View>
-                      <Text style={styles.modalDate}>{formatFullDate(selected?.dateTime)}</Text>
-                    </View>
-
-                    <Text style={styles.modalTitle}>{selected?.title}</Text>
-                    
-                    <View style={styles.modalActions}>
-                      <TouchableOpacity style={styles.modalAction}>
-                        <Icon name="bookmark-outline" size={20} color="#667eea" />
-                        <Text style={styles.modalActionText}>Save</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity style={styles.modalAction}>
-                        <Icon name="share-outline" size={20} color="#667eea" />
-                        <Text style={styles.modalActionText}>Share</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity style={styles.modalAction}>
-                        <Icon name="open-outline" size={20} color="#667eea" />
-                        <Text style={styles.modalActionText}>Open</Text>
-                      </TouchableOpacity>
-                    </View>
-
-                    <Text style={styles.modalBody}>
-                      {selected?.body || 'Full article content would appear here...'}
+              <View style={styles.modalTextContent}>
+                <View style={styles.modalHeader}>
+                  <View style={styles.modalSourceBadge}>
+                    <Text style={styles.modalSourceText}>
+                      {selected?.source?.title || 'Unknown Source'}
                     </Text>
                   </View>
-                </ScrollView>
+                  <Text style={styles.modalDate}>{formatFullDate(selected?.dateTime)}</Text>
+                </View>
+
+                <Text style={styles.modalTitle}>{selected?.title}</Text>
+
+                <View style={styles.modalActions}>
+                  <TouchableOpacity style={styles.modalAction}>
+                    <Icon name="bookmark-outline" size={20} color="#667eea" />
+                    <Text style={styles.modalActionText}>Save</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.modalAction}>
+                    <Icon name="share-outline" size={20} color="#667eea" />
+                    <Text style={styles.modalActionText}>Share</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.modalAction}>
+                    <Icon name="open-outline" size={20} color="#667eea" />
+                    <Text style={styles.modalActionText}>Open</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={styles.modalBody}>
+                  {selected?.body || 'Full article content would appear here...'}
+                </Text>
               </View>
-            </View>
-          </Modal>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </>
   );
 }
@@ -518,9 +522,9 @@ export default function NewsPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingBottom:20
+    paddingBottom: 20
   },
-  safe: { 
+  safe: {
     flex: 1,
   },
 
@@ -530,9 +534,10 @@ const styles = StyleSheet.create({
   },
   headerTop: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    // justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 20,
+    gap:20
   },
   headerTitle: {
     color: '#FFF',
@@ -629,7 +634,7 @@ const styles = StyleSheet.create({
     width: 90,
     height: 120,
     borderRadius: 12,
-    objectFit:"fill"
+    objectFit: "fill"
   },
   imageOverlay: {
     position: 'absolute',

@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -23,6 +24,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 const { width, height } = Dimensions.get('window');
 
 const LoginPage: React.FC = () => {
+  const router = useRouter()
   const navigation = useNavigation<NavigationProp<any>>();
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
@@ -104,7 +106,7 @@ const LoginPage: React.FC = () => {
       form.append('client_secret', '');
 
       const response = await axios.post(
-        'http://192.168.30.216:8000/auth/login',
+        'http://192.168.1.91:8000/auth/login',
         form.toString(),
         {
           headers: {
@@ -120,7 +122,7 @@ const LoginPage: React.FC = () => {
       await AsyncStorage.setItem('refreshToken', refresh_token);
 
       Alert.alert('Welcome Back! 🎉', `Successfully logged in as ${email}`);
-      navigation.navigate('(tabs)');
+      router.push('/home');
     } catch (error: any) {
       const msg =
         error.response?.data?.detail || 
