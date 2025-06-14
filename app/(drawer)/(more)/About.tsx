@@ -1,16 +1,16 @@
 import { DrawerIconButton } from '@/components/DrawerButton';
 import Logo from '@/components/logo/Logo';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
+  Animated,
   Dimensions,
   LayoutAnimation,
   Platform,
-  ScrollView,
+  Pressable,
   StatusBar,
   StyleSheet,
   Text,
-  TouchableOpacity,
   UIManager,
   View
 } from 'react-native';
@@ -27,25 +27,58 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 export default function AboutPage() {
   const [expandedCard, setExpandedCard] = useState<number | null>(null);
   const [showFullAbout, setShowFullAbout] = useState(false);
+  const scrollY = useRef(new Animated.Value(0)).current;
 
   const toggleCard = (cardId: number) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    LayoutAnimation.configureNext({
+      duration: 300,
+      create: {
+        type: LayoutAnimation.Types.easeInEaseOut,
+        property: LayoutAnimation.Properties.opacity,
+      },
+      update: {
+        type: LayoutAnimation.Types.easeInEaseOut,
+      },
+    });
     setExpandedCard(expandedCard === cardId ? null : cardId);
   };
 
   const toggleAbout = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    LayoutAnimation.configureNext({
+      duration: 300,
+      create: {
+        type: LayoutAnimation.Types.easeInEaseOut,
+        property: LayoutAnimation.Properties.opacity,
+      },
+      update: {
+        type: LayoutAnimation.Types.easeInEaseOut,
+      },
+    });
     setShowFullAbout(!showFullAbout);
   };
 
+  const headerOpacity = scrollY.interpolate({
+    inputRange: [0, 100],
+    outputRange: [0, 1],
+    extrapolate: 'clamp',
+  });
+
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#667EEA" />
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
       
-      {/* Header */}
+      {/* Dynamic Header */}
+      <Animated.View style={[styles.headerOverlay, { opacity: headerOpacity }]}>
+        <LinearGradient
+          colors={['rgba(26, 26, 46, 0.95)', 'rgba(22, 33, 62, 0.95)']}
+          style={styles.headerGradient}
+        />
+      </Animated.View>
+
+      {/* Main Header */}
       <LinearGradient
         colors={['#1a1a2e', '#16213e', '#0f3460']}
-        style={{flex:1}}
+        style={styles.mainHeader}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       >
@@ -56,18 +89,32 @@ export default function AboutPage() {
             <View style={{ width: 24 }} />
           </View>
         </SafeAreaView>
+      </LinearGradient>
 
-
-      <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+      <Animated.ScrollView 
+        style={styles.scrollContainer} 
+        showsVerticalScrollIndicator={false}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: false }
+        )}
+        scrollEventThrottle={16}
+      >
         {/* Hero Section */}
         <View style={styles.heroSection}>
           <LinearGradient
-            colors={['rgba(102, 126, 234, 0.1)', 'rgba(255, 255, 255, 0.05)']}
-            style={styles.heroGradient}
+            colors={['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.9)']}
+            style={styles.heroCard}
           >
-            {/* Company Logo/Image */}
+            {/* Decorative Elements */}
+            <View style={styles.decorativeCircle1} />
+            <View style={styles.decorativeCircle2} />
+            
+            {/* Company Logo */}
             <View style={styles.logoContainer}>
-               <Logo isBlackLogo={true}/>
+              <View style={styles.logoWrapper}>
+                <Logo isBlackLogo={true}/>
+              </View>
             </View>
 
             {/* Company Info */}
@@ -75,40 +122,29 @@ export default function AboutPage() {
               <Text style={styles.companyName}>Pride Trading Consultancy</Text>
               <Text style={styles.companyTagline}>Leading Financial Services Provider</Text>
               
-              {/* Stats */}
+              {/* Enhanced Stats */}
               <View style={styles.statsContainer}>
-                <View style={styles.statItem}>
-                  <Text style={styles.statNumber}>7+</Text>
-                  <Text style={styles.statLabel}>Years</Text>
-                </View>
-                <View style={styles.statDivider} />
-                <View style={styles.statItem}>
-                  <Text style={styles.statNumber}>1000+</Text>
-                  <Text style={styles.statLabel}>Clients</Text>
-                </View>
-                <View style={styles.statDivider} />
-                <View style={styles.statItem}>
-                  <Text style={styles.statNumber}>SEBI</Text>
-                  <Text style={styles.statLabel}>Registered</Text>
-                </View>
+                <StatItem number="7+" label="Years" color="#1a1a2e" />
+                <StatItem number="1000+" label="Clients" color="#16213e" />
+                <StatItem number="SEBI" label="Registered" color="#0f3460" />
               </View>
             </View>
 
             {/* About Text */}
             <View style={styles.aboutContainer}>
               <Text style={styles.aboutText} numberOfLines={showFullAbout ? undefined : 4}>
-                <Text style={styles.highlight}>Pride Trading Consultancy Pvt. Ltd.</Text> is a leading Financial Services provider committed to make fair, holistic and top quality financial recommendations accessible to all traders and investors. It is one of the few organizations providing research and information on Indian capital markets mainly based on Technical Analysis and enjoys a strong reputation amongst investors, brokers and researchers. Our team is highly skilled with experienced analysis. Our efforts are to provide you more & more profit in every trade. We are working in this industry for the last 7 years and Ms. Apeksha Bansal is founder of this Company and is a SEBI Registered Research Analyst.
+                <Text style={styles.highlight}>Pride Trading Consultancy Pvt. Ltd.</Text> is a leading Financial Services provider committed to making fair, holistic and top quality financial recommendations accessible to all traders and investors. We are one of the few organizations providing research and information on Indian capital markets based on Technical Analysis and enjoy a strong reputation amongst investors, brokers and researchers. Our team is highly skilled with experienced analysts. Our efforts are to provide you more & more profit in every trade. We have been working in this industry for the last 7 years and Ms. Apeksha Bansal is the founder of this Company and is a SEBI Registered Research Analyst.
               </Text>
-              <TouchableOpacity onPress={toggleAbout} style={styles.readMoreButton}>
+              <Pressable onPress={toggleAbout} style={styles.readMoreButton}>
                 <Text style={styles.readMoreText}>
-                  {showFullAbout ? 'Read Less' : 'Read More'}
+                  {showFullAbout ? 'Show Less' : 'Read More'}
                 </Text>
                 <Icon 
                   name={showFullAbout ? 'chevron-up' : 'chevron-down'} 
                   size={16} 
-                  color="#667EEA" 
+                  color="#1a1a2e" 
                 />
-              </TouchableOpacity>
+              </Pressable>
             </View>
           </LinearGradient>
         </View>
@@ -116,14 +152,15 @@ export default function AboutPage() {
         {/* Vision Mission Goals */}
         <View style={styles.vmgSection}>
           <Text style={styles.sectionTitle}>Our Foundation</Text>
+          <Text style={styles.sectionSubtitle}>Building the future of financial services</Text>
           
           <VisionCard
             id={1}
             number="01"
             title="Vision"
-            icon="telescope"
-            color="#667EEA"
-            text="The World most customer focused Investment Management company where our Customers would be our marketers, our team members would be entrepreneurs & our competition would be our partners."
+            icon="telescope-outline"
+            gradient={['#1a1a2e', '#16213e']}
+            text="To become the world's most customer-focused Investment Management company where our customers would be our marketers, our team members would be entrepreneurs & our competition would be our partners."
             expanded={expandedCard === 1}
             onToggle={() => toggleCard(1)}
           />
@@ -132,9 +169,9 @@ export default function AboutPage() {
             id={2}
             number="02"
             title="Mission"
-            icon="rocket"
-            color="#10B981"
-            text="Pride Trading started with a goal of creating wealth for the retail and HNI category investors & Traders by giving out institutional quality research at a very reasonable price we have successfully done it in the past."
+            icon="rocket-outline"
+            gradient={['#16213e', '#0f3460']}
+            text="Pride Trading started with a goal of creating wealth for retail and HNI category investors & traders by providing institutional quality research at very reasonable prices. We have successfully achieved this in the past and continue to excel."
             expanded={expandedCard === 2}
             onToggle={() => toggleCard(2)}
           />
@@ -143,9 +180,9 @@ export default function AboutPage() {
             id={3}
             number="03"
             title="Our Goal"
-            icon="flag"
-            color="#F59E0B"
-            text="We always look forward to new challenges, applying creative solutions and visuals to our ideas, bringing them to market before anyone. We love what we do and it shows in the work that we have been fortunate enough to contribute to the industry for so over a decade."
+            icon="flag-outline"
+            gradient={['#0f3460', '#1a1a2e']}
+            text="We always look forward to new challenges, applying creative solutions and innovative approaches to our ideas, bringing them to market before anyone else. We love what we do and it shows in the quality work we've contributed to the industry for over a decade."
             expanded={expandedCard === 3}
             onToggle={() => toggleCard(3)}
           />
@@ -154,54 +191,65 @@ export default function AboutPage() {
         {/* Why Choose Us */}
         <View style={styles.whySection}>
           <Text style={styles.sectionTitle}>Why Choose Us</Text>
+          <Text style={styles.sectionSubtitle}>Trusted by thousands of investors</Text>
           
-          <WhyChooseCard
-            icon="shield-checkmark"
-            title="Professional Liability"
-            description="Pride Trading is fully committed to make fair, holistic and top quality financial recommendations."
-            color="#8B5CF6"
-          />
-          
-          <WhyChooseCard
-            icon="heart"
-            title="Trustworthy Company"
-            description="Pride Trading is the fastest growing financial service with diligent effort, acknowledged industry leadership and experience."
-            color="#06B6D4"
-          />
-          
-          <WhyChooseCard
-            icon="pricetag"
-            title="Affordable Price"
-            description="At Pride Trading you will get desired services at affordable price."
-            color="#EF4444"
-          />
+          <View style={styles.whyGrid}>
+            <WhyChooseCard
+              icon="shield-checkmark-outline"
+              title="Professional Excellence"
+              description="Fully committed to delivering fair, holistic and top-quality financial recommendations with professional liability coverage."
+              gradient={['#1a1a2e', '#16213e']}
+            />
+            
+            <WhyChooseCard
+              icon="heart-outline"
+              title="Trustworthy Partner"
+              description="Fastest growing financial service provider with diligent effort, acknowledged industry leadership and extensive experience."
+              gradient={['#16213e', '#0f3460']}
+            />
+            
+            <WhyChooseCard
+              icon="pricetag-outline"
+              title="Affordable Solutions"
+              description="Get premium financial services and research at affordable prices without compromising on quality or reliability."
+              gradient={['#0f3460', '#1a1a2e']}
+            />
+
+            <WhyChooseCard
+              icon="trending-up-outline"
+              title="Proven Results"
+              description="Track record of consistent performance and successful wealth creation for our diverse client portfolio."
+              gradient={['#1a1a2e', '#0f3460']}
+            />
+          </View>
         </View>
 
         {/* Team Section */}
         <View style={styles.teamSection}>
           <Text style={styles.sectionTitle}>Leadership</Text>
+          <Text style={styles.sectionSubtitle}>Meet our experienced team</Text>
           
           <View style={styles.founderCard}>
             <LinearGradient
-              colors={['rgba(102, 126, 234, 0.1)', 'rgba(255, 255, 255, 0.05)']}
+              colors={['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.9)']}
               style={styles.founderGradient}
             >
               <View style={styles.founderImageContainer}>
                 <LinearGradient
-                  colors={['#667EEA', '#764BA2']}
+                  colors={['#1a1a2e', '#16213e']}
                   style={styles.founderImage}
                 >
-                  <Icon name="person" size={32} color="#FFFFFF" />
+                  <Icon name="person" size={36} color="#FFFFFF" />
                 </LinearGradient>
               </View>
               
               <View style={styles.founderInfo}>
                 <Text style={styles.founderName}>Ms. Apeksha Bansal</Text>
                 <Text style={styles.founderTitle}>Founder & CEO</Text>
-                <Text style={styles.founderDescription}>SEBI Registered Research Analyst</Text>
+                <Text style={styles.founderDescription}>SEBI Registered Research Analyst with 7+ years of experience in financial markets</Text>
                 
                 <View style={styles.founderBadge}>
-                  <Icon name="shield-checkmark" size={14} color="#10B981" />
+                  <Icon name="shield-checkmark" size={16} color="#16213e" />
                   <Text style={styles.badgeText}>SEBI Certified</Text>
                 </View>
               </View>
@@ -209,97 +257,126 @@ export default function AboutPage() {
           </View>
         </View>
 
-        {/* Contact Section */}
+        {/* Enhanced Contact Section */}
         <View style={styles.contactSection}>
           <Text style={styles.sectionTitle}>Get In Touch</Text>
+          <Text style={styles.sectionSubtitle}>Ready to start your investment journey?</Text>
           
           <View style={styles.contactGrid}>
             <ContactCard
-              icon="call"
+              icon="call-outline"
               title="Phone"
               value="+91 XXXXX XXXXX"
-              color="#10B981"
+              gradient={['#1a1a2e', '#16213e']}
             />
             
             <ContactCard
-              icon="mail"
+              icon="mail-outline"
               title="Email"
               value="info@pridecons.com"
-              color="#667EEA"
+              gradient={['#16213e', '#0f3460']}
             />
             
             <ContactCard
-              icon="location"
+              icon="location-outline"
               title="Address"
               value="India"
-              color="#F59E0B"
+              gradient={['#0f3460', '#1a1a2e']}
             />
             
             <ContactCard
-              icon="globe"
+              icon="globe-outline"
               title="Website"
               value="www.pridecons.com"
-              color="#8B5CF6"
+              gradient={['#1a1a2e', '#0f3460']}
             />
           </View>
+
+          {/* CTA Button */}
+          <Pressable style={styles.ctaButton}>
+            <LinearGradient
+              colors={['#1a1a2e', '#16213e', '#0f3460']}
+              style={styles.ctaGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+            >
+              <Text style={styles.ctaText}>Start Trading Today</Text>
+              <Icon name="arrow-forward" size={20} color="#FFFFFF" />
+            </LinearGradient>
+          </Pressable>
         </View>
 
         {/* Bottom Padding */}
-        <View style={{ height: 32 }} />
-      </ScrollView>
-            </LinearGradient>
+        <View style={{ height: 40 }} />
+      </Animated.ScrollView>
     </View>
   );
 }
 
-// Vision Card Component
-function VisionCard({ id, number, title, icon, color, text, expanded, onToggle }: any) {
+// Enhanced Stat Item Component
+function StatItem({ number, label, color }: { number: string; label: string; color: string }) {
   return (
-    <View style={styles.visionCard}>
-      <TouchableOpacity onPress={onToggle} activeOpacity={0.9}>
-        <LinearGradient
-          colors={['rgba(255, 255, 255, 0.1)', 'rgba(255, 255, 255, 0.05)']}
-          style={styles.visionGradient}
-        >
-          <View style={styles.visionHeader}>
-            <View style={styles.visionLeft}>
-              <View style={[styles.visionIcon, { backgroundColor: color }]}>
-                <Icon name={icon} size={24} color="#FFFFFF" />
-              </View>
-              <View style={styles.visionTitleContainer}>
-                <Text style={styles.visionNumber}>{number}</Text>
-                <Text style={styles.visionTitle}>{title}</Text>
-              </View>
+    <View style={styles.statItem}>
+      <Text style={[styles.statNumber, { color }]}>{number}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </View>
+  );
+}
+
+// Enhanced Vision Card Component
+function VisionCard({ id, number, title, icon, gradient, text, expanded, onToggle }: any) {
+  return (
+    <Pressable style={styles.visionCard} onPress={onToggle}>
+      <LinearGradient
+        colors={['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.9)']}
+        style={styles.visionGradient}
+      >
+        <View style={styles.visionHeader}>
+          <View style={styles.visionLeft}>
+            <LinearGradient
+              colors={gradient}
+              style={styles.visionIcon}
+            >
+              <Icon name={icon} size={24} color="#FFFFFF" />
+            </LinearGradient>
+            <View style={styles.visionTitleContainer}>
+              <Text style={styles.visionNumber}>{number}</Text>
+              <Text style={styles.visionTitle}>{title}</Text>
             </View>
+          </View>
+          <View style={styles.expandIcon}>
             <Icon 
               name={expanded ? 'chevron-up' : 'chevron-down'} 
               size={20} 
               color="#64748B" 
             />
           </View>
-          
-          {expanded && (
-            <View style={styles.visionContent}>
-              <Text style={styles.visionText}>{text}</Text>
-            </View>
-          )}
-        </LinearGradient>
-      </TouchableOpacity>
-    </View>
+        </View>
+        
+        {expanded && (
+          <View style={styles.visionContent}>
+            <Text style={styles.visionText}>{text}</Text>
+          </View>
+        )}
+      </LinearGradient>
+    </Pressable>
   );
 }
 
-// Why Choose Card Component
-function WhyChooseCard({ icon, title, description, color }: any) {
+// Enhanced Why Choose Card Component
+function WhyChooseCard({ icon, title, description, gradient }: any) {
   return (
     <View style={styles.whyCard}>
       <LinearGradient
-        colors={['rgba(255, 255, 255, 0.1)', 'rgba(255, 255, 255, 0.05)']}
+        colors={['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.9)']}
         style={styles.whyCardGradient}
       >
-        <View style={[styles.whyIcon, { backgroundColor: `${color}15` }]}>
-          <Icon name={icon} size={28} color={color} />
-        </View>
+        <LinearGradient
+          colors={gradient}
+          style={styles.whyIcon}
+        >
+          <Icon name={icon} size={28} color="#FFFFFF" />
+        </LinearGradient>
         <View style={styles.whyContent}>
           <Text style={styles.whyTitle}>{title}</Text>
           <Text style={styles.whyDescription}>{description}</Text>
@@ -309,21 +386,24 @@ function WhyChooseCard({ icon, title, description, color }: any) {
   );
 }
 
-// Contact Card Component
-function ContactCard({ icon, title, value, color }: any) {
+// Enhanced Contact Card Component
+function ContactCard({ icon, title, value, gradient }: any) {
   return (
-    <View style={styles.contactCard}>
+    <Pressable style={styles.contactCard}>
       <LinearGradient
-        colors={['rgba(255, 255, 255, 0.1)', 'rgba(255, 255, 255, 0.05)']}
+        colors={['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.9)']}
         style={styles.contactGradient}
       >
-        <View style={[styles.contactIcon, { backgroundColor: color }]}>
+        <LinearGradient
+          colors={gradient}
+          style={styles.contactIcon}
+        >
           <Icon name={icon} size={20} color="#FFFFFF" />
-        </View>
+        </LinearGradient>
         <Text style={styles.contactTitle}>{title}</Text>
         <Text style={styles.contactValue}>{value}</Text>
       </LinearGradient>
-    </View>
+    </Pressable>
   );
 }
 
@@ -332,146 +412,200 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8FAFC',
   },
-  header: {
-    paddingBottom: 12,
+  headerOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 100,
+    zIndex: 10,
+  },
+  headerGradient: {
+    flex: 1,
+  },
+  mainHeader: {
+    paddingBottom: 20,
+    zIndex: 11,
   },
   headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 8,
+    paddingHorizontal: 20,
+    paddingTop: 12,
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
     color: '#FFFFFF',
+    letterSpacing: 0.5,
   },
   scrollContainer: {
     flex: 1,
   },
   heroSection: {
-    margin: 16,
-    borderRadius: 20,
+    margin: 20,
+    marginTop: -10,
+    borderRadius: 24,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowColor: '#1a1a2e',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 24,
+    elevation: 10,
   },
-  heroGradient: {
-    padding: 24,
-    backgroundColor: '#FFFFFF',
+  heroCard: {
+    padding: 28,
+    position: 'relative',
+    overflow: 'hidden',
   },
-  logoContainer: {
-    alignItems: 'center',
-    marginBottom: 20,
+  decorativeCircle1: {
+    position: 'absolute',
+    top: -30,
+    right: -30,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: 'rgba(26, 26, 46, 0.08)',
   },
-  logoGradient: {
+  decorativeCircle2: {
+    position: 'absolute',
+    bottom: -20,
+    left: -20,
     width: 80,
     height: 80,
     borderRadius: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#667EEA',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    backgroundColor: 'rgba(22, 33, 62, 0.08)',
   },
-  companyInfo: {
+  logoContainer: {
     alignItems: 'center',
     marginBottom: 24,
   },
+  logoWrapper: {
+    padding: 16,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    shadowColor: '#1a1a2e',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(26, 26, 46, 0.1)',
+  },
+  companyInfo: {
+    alignItems: 'center',
+    marginBottom: 28,
+  },
   companyName: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: '800',
     color: '#1E293B',
     textAlign: 'center',
     marginBottom: 8,
+    letterSpacing: 0.5,
   },
   companyTagline: {
     fontSize: 16,
     color: '#64748B',
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
+    fontWeight: '500',
   },
   statsContainer: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(102, 126, 234, 0.1)',
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: '#1a1a2e',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(26, 26, 46, 0.1)',
   },
   statItem: {
     flex: 1,
     alignItems: 'center',
   },
   statNumber: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#667EEA',
+    fontSize: 22,
+    fontWeight: '800',
     marginBottom: 4,
+    letterSpacing: 0.5,
   },
   statLabel: {
     fontSize: 12,
     color: '#64748B',
-    fontWeight: '500',
-  },
-  statDivider: {
-    width: 1,
-    backgroundColor: 'rgba(102, 126, 234, 0.2)',
-    marginHorizontal: 16,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   aboutContainer: {
-    marginTop: 8,
+    marginTop: 12,
   },
   aboutText: {
     fontSize: 16,
-    lineHeight: 24,
+    lineHeight: 26,
     color: '#475569',
     textAlign: 'justify',
   },
   highlight: {
     fontWeight: '700',
-    color: '#667EEA',
+    color: '#1a1a2e',
   },
   readMoreButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 12,
-    paddingVertical: 8,
+    marginTop: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    backgroundColor: 'rgba(26, 26, 46, 0.1)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(26, 26, 46, 0.15)',
   },
   readMoreText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#667EEA',
-    marginRight: 4,
+    color: '#1a1a2e',
+    marginRight: 6,
+    letterSpacing: 0.3,
   },
   vmgSection: {
-    padding: 16,
+    padding: 20,
   },
   sectionTitle: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '800',
     color: '#1E293B',
-    marginBottom: 20,
+    marginBottom: 8,
     textAlign: 'center',
+    letterSpacing: 0.5,
+  },
+  sectionSubtitle: {
+    fontSize: 16,
+    color: '#64748B',
+    textAlign: 'center',
+    marginBottom: 24,
+    fontWeight: '500',
   },
   visionCard: {
     marginBottom: 16,
-    borderRadius: 16,
+    borderRadius: 20,
     overflow: 'hidden',
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowColor: '#1a1a2e',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 6,
   },
   visionGradient: {
-    padding: 20,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(26, 26, 46, 0.1)',
   },
   visionHeader: {
     flexDirection: 'row',
@@ -484,12 +618,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   visionIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
+    shadowColor: '#1a1a2e',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
   },
   visionTitleContainer: {
     flex: 1,
@@ -499,49 +638,64 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#94A3B8',
     marginBottom: 2,
+    letterSpacing: 0.5,
   },
   visionTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: '#1E293B',
+    letterSpacing: 0.3,
+  },
+  expandIcon: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: 'rgba(100, 116, 139, 0.1)',
   },
   visionContent: {
-    marginTop: 16,
-    paddingTop: 16,
+    marginTop: 20,
+    paddingTop: 20,
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
+    borderTopColor: 'rgba(100, 116, 139, 0.2)',
   },
   visionText: {
-    fontSize: 14,
-    lineHeight: 22,
+    fontSize: 15,
+    lineHeight: 24,
     color: '#64748B',
   },
   whySection: {
-    padding: 16,
+    padding: 20,
+  },
+  whyGrid: {
+    gap: 16,
   },
   whyCard: {
-    marginBottom: 16,
-    borderRadius: 16,
+    borderRadius: 20,
     overflow: 'hidden',
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowColor: '#1a1a2e',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 6,
   },
   whyCardGradient: {
-    padding: 20,
+    padding: 24,
     flexDirection: 'row',
     alignItems: 'flex-start',
+    borderWidth: 1,
+    borderColor: 'rgba(26, 26, 46, 0.1)',
   },
   whyIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
+    shadowColor: '#1a1a2e',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
   },
   whyContent: {
     flex: 1,
@@ -551,117 +705,160 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#1E293B',
     marginBottom: 8,
+    letterSpacing: 0.3,
   },
   whyDescription: {
-    fontSize: 14,
-    lineHeight: 22,
+    fontSize: 15,
+    lineHeight: 24,
     color: '#64748B',
   },
   teamSection: {
-    padding: 16,
+    padding: 20,
   },
   founderCard: {
-    borderRadius: 16,
+    borderRadius: 20,
     overflow: 'hidden',
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 6,
+    shadowColor: '#1a1a2e',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
   },
   founderGradient: {
-    padding: 24,
+    padding: 28,
     flexDirection: 'row',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(26, 26, 46, 0.1)',
   },
   founderImageContainer: {
     marginRight: 20,
   },
   founderImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 88,
+    height: 88,
+    borderRadius: 44,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#1a1a2e',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   founderInfo: {
     flex: 1,
   },
   founderName: {
     fontSize: 20,
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#1E293B',
     marginBottom: 4,
+    letterSpacing: 0.3,
   },
   founderTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#667EEA',
+    color: '#1a1a2e',
     marginBottom: 8,
   },
   founderDescription: {
     fontSize: 14,
     color: '#64748B',
     marginBottom: 12,
+    lineHeight: 20,
   },
   founderBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    backgroundColor: 'rgba(26, 26, 46, 0.1)',
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 8,
     borderRadius: 12,
     alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderColor: 'rgba(26, 26, 46, 0.15)',
   },
   badgeText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#10B981',
-    marginLeft: 4,
+    fontWeight: '700',
+    color: '#16213e',
+    marginLeft: 6,
+    letterSpacing: 0.3,
   },
   contactSection: {
-    padding: 16,
+    padding: 20,
   },
   contactGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
+    marginBottom: 24,
   },
   contactCard: {
-    width: (width - 48) / 2,
+    width: (width - 52) / 2,
     marginBottom: 16,
-    borderRadius: 16,
+    borderRadius: 20,
     overflow: 'hidden',
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowColor: '#1a1a2e',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 6,
   },
   contactGradient: {
     padding: 20,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(26, 26, 46, 0.1)',
   },
   contactIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
+    shadowColor: '#1a1a2e',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
   },
   contactTitle: {
     fontSize: 14,
     fontWeight: '600',
     color: '#64748B',
     marginBottom: 4,
+    letterSpacing: 0.3,
   },
   contactValue: {
-    fontSize: 12,
-    fontWeight: '500',
+    fontSize: 13,
+    fontWeight: '600',
     color: '#1E293B',
     textAlign: 'center',
+  },
+  ctaButton: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#1a1a2e',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  ctaGradient: {
+    paddingVertical: 18,
+    paddingHorizontal: 32,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ctaText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginRight: 8,
+    letterSpacing: 0.5,
   },
 });

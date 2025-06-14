@@ -327,7 +327,7 @@ const ForgotPasswordPage: React.FC = () => {
                         <Icon name="keypad-outline" size={20} color="#666" style={styles.inputIcon} />
                         <TextInput
                           style={styles.input}
-                          placeholder="Enter 6-digit code"
+                          placeholder="Enter 4-digit code"
                           placeholderTextColor="#999"
                           keyboardType="numeric"
                           maxLength={6}

@@ -144,8 +144,8 @@ const SignupPage: React.FC = () => {
       setOtpError('OTP is required');
       return false;
     }
-    if (otp.length !== 6) {
-      setOtpError('OTP must be 6 digits');
+    if (otp.length !== 4) {
+      setOtpError('OTP must be 4 digits');
       return false;
     }
     setOtpError('');
@@ -449,7 +449,7 @@ const SignupPage: React.FC = () => {
                         <Icon name="keypad-outline" size={20} color="#666" style={styles.inputIcon} />
                         <TextInput
                           style={styles.input}
-                          placeholder="Enter 6-digit OTP"
+                          placeholder="Enter 4-digit OTP"
                           placeholderTextColor="#999"
                           keyboardType="numeric"
                           maxLength={6}

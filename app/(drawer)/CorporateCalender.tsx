@@ -2,19 +2,19 @@ import { DrawerIconButton } from '@/components/DrawerButton';
 import axios from 'axios';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
-    ActivityIndicator,
-    Dimensions,
-    FlatList,
-    RefreshControl,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Dimensions,
+  FlatList,
+  RefreshControl,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -186,14 +186,14 @@ export default function CorporateCalendarScreen() {
               <View style={styles.dateItem}>
                 <Text style={styles.dateLabel}>Announced Date</Text>
                 <Text style={styles.dateValue}>
-                  {formatDate(item.Date1)}
+                  {item.Date1}
                 </Text>
               </View>
               <View style={styles.dateDivider} />
               <View style={styles.dateItem}>
                 <Text style={styles.dateLabel}>Ex-Date</Text>
                 <Text style={styles.dateValue}>
-                  {formatDate(item.Date2)}
+                  {item.Date2}
                 </Text>
               </View>
             </View>

@@ -2,7 +2,7 @@ import { DrawerIconButton } from '@/components/DrawerButton';
 import axios from 'axios';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Dimensions,
@@ -176,8 +176,8 @@ export default function CorporateActionScreen() {
 
   const CorporateActionCard = ({ item }: { item: CorporateActionItem }) => {
     const filterConfig = getFilterConfig();
-    const companyName = item.name || item.companyName || 'Unknown Company';
-    const actionDate = item.date1 || item.date || 'No Date';
+    const companyName = item.name || item.stockName ;
+    const actionDate = item.date1 || item.creationtime;
 
     return (
       <TouchableOpacity
@@ -206,7 +206,7 @@ export default function CorporateActionScreen() {
             </View>
             <View style={styles.cardHeaderRight}>
               <Text style={styles.actionDate}>
-                {formatDate(actionDate)}
+                {actionDate}
               </Text>
               <Icon name="chevron-forward" size={16} color="#94A3B8" />
             </View>
@@ -275,7 +275,7 @@ export default function CorporateActionScreen() {
     if (!selectedItem) return null;
 
     const filterConfig = getFilterConfig();
-    const companyName = selectedItem.name || selectedItem.companyName || 'Unknown Company';
+    const companyName = selectedItem.name || selectedItem.stockName;
 
     // Filter out common fields that are already displayed
     const detailFields = Object.entries(selectedItem).filter(([key, value]) => {
@@ -721,6 +721,7 @@ const styles = StyleSheet.create({
   },
   modalBody: {
     padding: 20,
+    marginBottom:2
   },
   detailRow: {
     paddingVertical: 12,
