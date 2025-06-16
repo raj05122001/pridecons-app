@@ -1,9 +1,9 @@
 // app/_layout.tsx
-import { registerForPushNotificationsAsync, setupNotificationListeners } from '@/components/notificationService';
 import { AuthProvider, decodeAuthToken, useAuth } from '@/contexts/AuthContext';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import axios from 'axios';
 import { useFonts } from 'expo-font';
+import * as Notifications from 'expo-notifications';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
@@ -27,9 +27,16 @@ function RootLayoutNav() {
 
   const [userDetails, setUserDetails] = useState<DecodedAuthToken | null>(null);
   const [isPlanActive, setIsPlanActive] = useState<boolean>(true);
-  const [message, setMessage] = useState<string>('');
-  const [isPlanLoader,setIsPlanLoader]=useState<Boolean>(true)
+  const [isPlanLoader, setIsPlanLoader] = useState<Boolean>(true)
 
+  useEffect(() => {
+    chec()
+  }, [])
+
+  const chec = async () => {
+    const token = (await Notifications.getDevicePushTokenAsync()).data;
+    console.log("Notifications token : ", token)
+  }
   // 1️⃣ Get decoded token
   useEffect(() => {
     decodeAuthToken().then(setUserDetails).catch(() => {
@@ -45,29 +52,17 @@ function RootLayoutNav() {
           `https://api.pridecons.sbs/plan/check-plan/${userDetails.phone_number}`
         )
         .then(response => {
-          console.log("response : ",response?.data)
+          console.log("response : ", response?.data)
           setIsPlanActive(response?.data?.active);
-          setMessage(response.data.message);
           setIsPlanLoader(false)
         })
         .catch(() => {
           // if API fails, you can choose to block access or default to active
           setIsPlanActive(true);
-          setMessage('Unable to verify plan. Please try again later.');
           setIsPlanLoader(false)
         });
-    } 
+    }
   }, [userDetails]);
-
-  // 3️⃣ Notification setup
-  useEffect(() => {
-    registerForPushNotificationsAsync()
-      .then(token => console.log('Notif token:', token))
-      .catch(console.error);
-
-    const cleanup = setupNotificationListeners();
-    return cleanup;
-  }, []);
 
   // 4️⃣ Loading state
   if (!loaded || isLoading || isPlanLoader) {
@@ -77,7 +72,7 @@ function RootLayoutNav() {
       </View>
     );
   }
-  
+
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack

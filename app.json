@@ -34,7 +34,7 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/images/notification-icon.png",
+          "icon": "./assets/images/short-logo.png",
           "color": "#ffffff"
         }
       ],
@@ -52,7 +52,7 @@
       "typedRoutes": true
     },
     "notification": {
-      "icon": "./assets/images/notification-icon.png",
+      "icon": "./assets/images/short-logo.png",
       "androidMode": "default",
       "androidCollapsedTitle": "#{unread_notifications} new notifications"
     }
