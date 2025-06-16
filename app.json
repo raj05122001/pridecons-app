@@ -18,7 +18,6 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
       "package": "com.pridetradingconsultancy.pridecons",
       "googleServicesFile": "./google-services.json"
     },
@@ -34,7 +33,6 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/images/short-logo.png",
           "color": "#ffffff"
         }
       ],
@@ -50,11 +48,6 @@
     ],
     "experiments": {
       "typedRoutes": true
-    },
-    "notification": {
-      "icon": "./assets/images/short-logo.png",
-      "androidMode": "default",
-      "androidCollapsedTitle": "#{unread_notifications} new notifications"
     }
   }
 }

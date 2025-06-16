@@ -1,71 +1,100 @@
-// notificationService.js (Testing Version)
+// components/notificationService.js - Simplified without Firebase
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
-import { Alert, Platform } from 'react-native';
+import { Alert } from 'react-native';
 
-// Notification behavior configuration
+// Configure notification handling
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
     shouldPlaySound: true,
-    shouldSetBadge: true,
+    shouldSetBadge: false,
   }),
 });
 
-// Register for push notifications (Mock version)
-export async function registerForPushNotificationsAsync() {
-  console.log('🔔 Setting up notifications...');
-  
-  if (Platform.OS === 'android') {
-    await Notifications.setNotificationChannelAsync('default', {
-      name: 'default',
-      importance: Notifications.AndroidImportance.MAX,
-      vibrationPattern: [0, 250, 250, 250],
-      lightColor: '#FF231F7C',
-    });
-  }
-
-  if (Device.isDevice) {
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
+// Request permissions and get Expo push token
+export async function requestPermissionsAndGetToken() {
+  try {
+    // Request permissions
+    const { status } = await Notifications.requestPermissionsAsync();
     
-    if (existingStatus !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-    }
-    
-    if (finalStatus !== 'granted') {
-      Alert.alert('Permission Required', 'Please allow notifications to continue!');
+    if (status !== 'granted') {
+      Alert.alert(
+        'Permission Required! 🔔',
+        'Please enable notifications to receive updates from Pride App.',
+        [{ text: 'OK' }]
+      );
       return null;
     }
     
-    // Create mock token for testing
-    const mockToken = `pride-app-token-${Date.now()}`;
-    console.log('✅ Mock Token Created:', mockToken);
+    console.log('✅ Notification permissions granted');
+
+    // Get Expo push token (for now, until Firebase is properly setup)
+    const tokenData = await Notifications.getDevicePushTokenAsync();
+    const token = tokenData.data;
     
-    // Store token in AsyncStorage
-    await AsyncStorage.setItem('notificationToken', mockToken);
+    console.log('📱 Expo Push Token:', token);
     
-    Alert.alert('Success! 🎉', 'Notifications are ready for testing!');
+    // Store token locally
+    await AsyncStorage.setItem('pushToken', token);
     
-    return mockToken;
-  } else {
-    Alert.alert('Device Required', 'Physical device needed for notifications');
+    return token;
+  } catch (error) {
+    console.error('❌ Error getting push token:', error);
     return null;
   }
 }
 
-// Setup notification listeners
-export function setupNotificationListeners() {
-  console.log('👂 Setting up notification listeners...');
-  
-  // When notification received while app is open
-  const notificationListener = Notifications.addNotificationReceivedListener(notification => {
-    console.log('📨 Notification received:', notification);
+// Register push notification token with your backend
+export async function registerPushToken(userId) {
+  try {
+    const token = await requestPermissionsAndGetToken();
+    
+    if (!token) {
+      throw new Error('Could not get push token');
+    }
+
+    const formData = {
+      user_id: userId,
+      push_token: token
+    };
+
+    console.log('📤 Registering token:', formData);
+
+    const response = await fetch('https://api.pridecons.sbs/notification/users/register-push-token', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData)
+    });
+
+    const result = await response.json();
+    console.log('✅ Token registration response:', result);
+    
+    return result;
+  } catch (error) {
+    console.error('❌ Error registering token:', error);
+    
+    // Don't throw error, just log it for now
     Alert.alert(
-      '📱 New Notification',
-      notification.request.content.body || 'You have a new notification!',
+      'Info', 
+      'Notifications setup completed. Push notifications will be enabled once backend is fully configured.'
+    );
+    
+    return { status: 'partial_success', error: error.message };
+  }
+}
+
+// Set up notification listeners
+export function setupNotificationListeners() {
+  // When notification is received while app is in foreground
+  const notificationListener = Notifications.addNotificationReceivedListener(notification => {
+    console.log('📳 Notification received:', notification);
+    Alert.alert(
+      notification.request.content.title || 'New Notification! 🔔',
+      notification.request.content.body || 'You have a new message',
       [{ text: 'OK', onPress: () => console.log('Notification acknowledged') }]
     );
   });
@@ -105,28 +134,10 @@ export async function sendTestNotification() {
   }
 }
 
-// Simulate push notification from server
-export function simulatePushNotification() {
-  Alert.alert(
-    '🔔 Push Notification Demo',
-    'This simulates receiving a push notification from your server. In production, this would come from Firebase!',
-    [
-      { 
-        text: 'Dismiss', 
-        style: 'cancel' 
-      },
-      { 
-        text: 'Open App', 
-        onPress: () => console.log('Push notification opened app')
-      }
-    ]
-  );
-}
-
 // Get stored notification token
 export async function getStoredToken() {
   try {
-    const token = await AsyncStorage.getItem('notificationToken');
+    const token = await AsyncStorage.getItem('pushToken');
     return token;
   } catch (error) {
     console.error('Error getting stored token:', error);
