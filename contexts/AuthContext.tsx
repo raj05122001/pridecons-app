@@ -112,6 +112,7 @@ export async function getAuthToken(): Promise<string | null> {
 export async function decodeAuthToken(): Promise<DecodedAuthToken | null> {
   try {
     const token = await AsyncStorage.getItem('accessToken');
+    console.log("access token : ",token)
     if (!token) return null;
 
     // this will throw if token is malformed

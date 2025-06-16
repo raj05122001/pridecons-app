@@ -3,7 +3,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as Notifications from 'expo-notifications';
 import { useRouter } from 'expo-router';
+import { jwtDecode } from "jwt-decode";
 import React, { useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -32,7 +34,7 @@ const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [emailError, setEmailError] = useState<string>('');
   const [passwordError, setPasswordError] = useState<string>('');
-  
+
   // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
@@ -117,7 +119,31 @@ const LoginPage: React.FC = () => {
       );
 
       const { access_token, refresh_token, token_type } = response.data;
+
+      const decoded = jwtDecode<any>(access_token);
+
+      console.log("decoded : ",decoded)
       // Store tokens locally
+
+      const token = (await Notifications.getDevicePushTokenAsync()).data;
+
+      const formData = {
+        "user_id": decoded?.phone_number,
+        "push_token": token
+      }
+
+     const apiresponse =  await axios.post("https://api.pridecons.sbs/notification/users/register-push-token",
+        formData,
+        {
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+        }
+      )
+
+      console.log("apiresponse : ",apiresponse)
+
       await AsyncStorage.setItem('accessToken', access_token);
       await AsyncStorage.setItem('refreshToken', refresh_token);
 
@@ -125,8 +151,8 @@ const LoginPage: React.FC = () => {
       router.push('/home');
     } catch (error: any) {
       const msg =
-        error.response?.data?.detail || 
-        error.response?.data?.error || 
+        error.response?.data?.detail ||
+        error.response?.data?.error ||
         error.message ||
         'Login failed. Please try again.';
       Alert.alert('Login Failed 😞', msg);
@@ -162,7 +188,7 @@ const LoginPage: React.FC = () => {
             <View style={styles.header}>
               <View >
                 {/* <Icon name="lock-closed" size={40} color="#fff" /> */}
-                <Logo/>
+                <Logo />
               </View>
               {/* <Text style={styles.title}>Welcome</Text> */}
               <Text style={styles.subtitle}>Sign in</Text>
@@ -314,7 +340,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: 'rgba(255, 255, 255, 0.8)',
     textAlign: 'center',
-    marginTop:6
+    marginTop: 6
   },
   formContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',

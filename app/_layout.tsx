@@ -3,7 +3,6 @@ import { AuthProvider, decodeAuthToken, useAuth } from '@/contexts/AuthContext';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import axios from 'axios';
 import { useFonts } from 'expo-font';
-import * as Notifications from 'expo-notifications';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
@@ -28,26 +27,26 @@ function RootLayoutNav() {
   const [userDetails, setUserDetails] = useState<DecodedAuthToken | null>(null);
   const [isPlanActive, setIsPlanActive] = useState<boolean>(true);
   const [isPlanLoader, setIsPlanLoader] = useState<Boolean>(true)
-
-  useEffect(() => {
-    chec()
-  }, [])
-
-  const chec = async () => {
-    const token = (await Notifications.getDevicePushTokenAsync()).data;
-    console.log("Notifications token : ", token)
-  }
+  
   // 1️⃣ Get decoded token
   useEffect(() => {
     decodeAuthToken().then(setUserDetails).catch(() => {
-      setIsPlanActive(true)
+      setIsPlanActive(false)
     });
   }, []);
 
   useEffect(() => {
+    console.log("userDetails?.phone_number : ",userDetails)
     if (userDetails?.phone_number) {
-      setIsPlanLoader(true)
-      axios
+      checkSubscription()
+    }else{
+      setIsPlanLoader(false)
+    }
+  }, [userDetails?.phone_number]);
+
+  const checkSubscription = async () => {
+    try {
+      await axios
         .get(
           `https://api.pridecons.sbs/plan/check-plan/${userDetails.phone_number}`
         )
@@ -61,10 +60,15 @@ function RootLayoutNav() {
           setIsPlanActive(true);
           setIsPlanLoader(false)
         });
+    } catch (error) {
+      setIsPlanLoader(false)
+    }finally{
+      setIsPlanLoader(false)
     }
-  }, [userDetails]);
+  }
 
   // 4️⃣ Loading state
+  console.log("loaded : ", loaded, " , isLoading : ", isLoading, " , isPlanLoader : ", isPlanLoader)
   if (!loaded || isLoading || isPlanLoader) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F9FAFB' }}>
