@@ -3,7 +3,11 @@
     "name": "pride-notification-app",
     "slug": "pride-notification-app",
     "version": "1.0.0",
-    "platforms": ["ios", "android", "web"],
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "pridenotificationapp",
@@ -11,8 +15,6 @@
     "newArchEnabled": true,
     "plugins": [
       "expo-router",
-      "@react-native-firebase/app",
-      "@react-native-firebase/messaging",
       [
         "expo-notifications",
         {
@@ -39,6 +41,13 @@
     },
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "d0c3dfd9-c4ce-4219-be3d-a9f164fc6514"
+      }
+    },
+    "owner": "rajmalviya"
   }
 }
