@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "834810821591",
+    "project_id": "prideone-7be82",
+    "storage_bucket": "prideone-7be82.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:834810821591:android:c3d83777bb4e0fc2b4e992",
+        "android_client_info": {
+          "package_name": "com.pridetradingconsultancy.prideone"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBJTdD-Cz8cPyx3lzLG__5KZZXfr6NWXKk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

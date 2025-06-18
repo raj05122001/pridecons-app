@@ -9,21 +9,6 @@
     "scheme": "pridenotificationapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.pridetradingconsultancy.pridecons"
-    },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      }
-    },
-    "web": {
-      "bundler": "metro",
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
-    },
     "plugins": [
       "expo-router",
       "@react-native-firebase/app",
@@ -44,6 +29,14 @@
         }
       ]
     ],
+    "android": {
+      "googleServicesFile": "./google-services.json",
+      "package": "com.pridetradingconsultancy.prideone"
+    },
+    "ios": {
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "bundleIdentifier": "com.pridetradingconsultancy.prideone"
+    },
     "experiments": {
       "typedRoutes": true
     }
