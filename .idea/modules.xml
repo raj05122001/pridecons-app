@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/pride-notification-app.iml" filepath="$PROJECT_DIR$/.idea/pride-notification-app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/Pride One.iml" filepath="$PROJECT_DIR$/.idea/prideone.iml" />
     </modules>
   </component>
 </project>

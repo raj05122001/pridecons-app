@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "pride-notification-app",
-    "slug": "pride-notification-app",
+    "name": "Pride One",
+    "slug": "prideone",
     "version": "1.0.0",
     "platforms": [
       "ios",
@@ -18,13 +18,16 @@
       [
         "expo-notifications",
         {
-          "color": "#ffffff"
+          "icon": "./assets/images/notification.png",
+          "sounds": [
+            "./assets/sounds/ship_bell.wav"
+          ]
         }
       ],
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
@@ -33,11 +36,32 @@
     ],
     "android": {
       "googleServicesFile": "./google-services.json",
-      "package": "com.pridetradingconsultancy.prideone"
+      "package": "com.pridetradingconsultancy.prideone",
+      "versionCode": 1,
+      "notification": {
+        "icon": "./assets/images/notification.png"
+      }
     },
     "ios": {
       "googleServicesFile": "./GoogleService-Info.plist",
-      "bundleIdentifier": "com.pridetradingconsultancy.prideone"
+      "bundleIdentifier": "com.pridetradingconsultancy.prideone",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "pridenotificationapp"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
+    },
+    "web": {
+      "bundler": "metro"
     },
     "experiments": {
       "typedRoutes": true
@@ -45,9 +69,8 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "d0c3dfd9-c4ce-4219-be3d-a9f164fc6514"
+        "projectId": "24f7e739-2309-4aa5-b6bb-d2c808784e55"
       }
-    },
-    "owner": "rajmalviya"
+    }
   }
 }

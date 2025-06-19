@@ -31,6 +31,9 @@ Notifications.setNotificationHandler({
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
+  const [userDetails, setUserDetails] = useState<DecodedAuthToken | null>(null);
+  const [isPlanActive, setIsPlanActive] = useState<boolean>(true);
+  const [isPlanLoader, setIsPlanLoader] = useState<boolean>(true);
   const { isAuthenticated, isLoading } = useAuth();
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
@@ -39,21 +42,44 @@ function RootLayoutNav() {
   const notificationListener = useRef<any>(null);
   const responseListener = useRef<any>(null);
 
+  const checkToken = async () => {
+  try {
+    const res = await decodeAuthToken()
+    setUserDetails(res)
+    
+    if (!res?.phone_number) {
+      setIsPlanLoader(false);
+    }
+  } catch (error) {
+    console.error(error);
+    setIsPlanLoader(false);
+    // Should probably set userDetails to null on error
+    setUserDetails(null);
+  }
+}
+
+useEffect(() => {
+  checkToken()
+}, [checkToken])
+
   // Setup push notifications
   useEffect(() => {
-    registerForPushNotificationsAsync()
-      .then(token => {
-        if (token) {
-          console.log('📱 Push token received:', token);
-          // Register token with backend
-          updateToken(token);
-        } else {
-          console.log('❌ No push token available');
-        }
-      })
-      .catch(error => {
-        console.warn('❌ Push notification registration failed:', error);
-      });
+    if (userDetails?.phone_number) {
+      registerForPushNotificationsAsync()
+        .then(token => {
+          if (token) {
+            console.log('📱 Push token received:', token);
+            // Register token with backend
+            updateToken(token, userDetails);
+          } else {
+            console.log('❌ No push token available');
+          }
+        })
+        .catch(error => {
+          console.warn('❌ Push notification registration failed:', error);
+        });
+
+    }
 
     // Listen for notifications while app is in foreground
     notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
@@ -75,13 +101,13 @@ function RootLayoutNav() {
         Notifications.removeNotificationSubscription(responseListener.current);
       }
     };
-  }, []);
+  }, [userDetails]);
 
   const handleNotificationResponse = (response: Notifications.NotificationResponse) => {
     // Handle notification tap - you can navigate to specific screens here
     const data = response.notification.request.content.data;
     console.log('Notification data:', data);
-    
+
     // Example: Navigate based on notification data
     // if (data?.type === 'message') {
     //   router.push('/messages');
@@ -90,29 +116,29 @@ function RootLayoutNav() {
     // }
   };
 
-  const updateToken = async (token: string) => {
+  const updateToken = async (token: string, userDetail: any) => {
     try {
       console.log('🔄 Registering token with backend...');
-      
+
       const response = await axios.post(
         'https://api.pridecons.sbs/notification/users/register-push-token',
         {
-          user_id: "7869615290", // You might want to use actual user ID
+          user_id: userDetail.phone_number, // You might want to use actual user ID
           push_token: token
         },
         {
-          headers: { 
-            Accept: 'application/json', 
-            'Content-Type': 'application/json' 
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json'
           },
           timeout: 10000 // 10 second timeout
         }
       );
-      
+
       console.log('✅ Token registered successfully:', response.data);
     } catch (error) {
       console.error('❌ Failed to register token:', error);
-      
+
       if (axios.isAxiosError(error)) {
         if (error.response) {
           console.error('Response error:', error.response.data);
@@ -123,25 +149,10 @@ function RootLayoutNav() {
     }
   };
 
-  const [userDetails, setUserDetails] = useState<DecodedAuthToken | null>(null);
-  const [isPlanActive, setIsPlanActive] = useState<boolean>(true);
-  const [isPlanLoader, setIsPlanLoader] = useState<boolean>(true);
-
-  // Get decoded token
-  useEffect(() => {
-    decodeAuthToken()
-      .then(setUserDetails)
-      .catch(() => {
-        setIsPlanActive(false);
-      });
-  }, []);
-
   useEffect(() => {
     console.log("userDetails?.phone_number:", userDetails?.phone_number);
     if (userDetails?.phone_number) {
       checkSubscription();
-    } else {
-      setIsPlanLoader(false);
     }
   }, [userDetails?.phone_number]);
 
@@ -151,7 +162,7 @@ function RootLayoutNav() {
         `https://api.pridecons.sbs/plan/check-plan/${userDetails?.phone_number}`,
         { timeout: 10000 }
       );
-      
+
       console.log("Plan check response:", response?.data);
       setIsPlanActive(response?.data?.active);
     } catch (error) {
@@ -167,11 +178,11 @@ function RootLayoutNav() {
   console.log("loaded:", loaded, ", isLoading:", isLoading, ", isPlanLoader:", isPlanLoader);
   if (!loaded || isLoading || isPlanLoader) {
     return (
-      <View style={{ 
-        flex: 1, 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        backgroundColor: '#F9FAFB' 
+      <View style={{
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#F9FAFB'
       }}>
         <ActivityIndicator size="large" color="#6366F1" />
       </View>
@@ -247,8 +258,8 @@ async function registerForPushNotificationsAsync(): Promise<string> {
       'Push notifications require permission to work properly. Please enable notifications in your device settings.',
       [
         { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Settings', 
+        {
+          text: 'Settings',
           onPress: () => {
             // Open device settings (you might need to install expo-linking)
             // Linking.openSettings();
